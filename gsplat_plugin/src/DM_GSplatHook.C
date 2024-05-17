@@ -1,5 +1,5 @@
-#ifndef __HDK_DM_GsplatHook__
-#define __HDK_DM_GsplatHook__
+#ifndef __DM_GSPLAT_HOOK__
+#define __DM_GSPLAT_HOOK__
 
 #include <SOP/SOP_Node.h>
 
@@ -66,4 +66,4 @@ void newRenderHook(DM_RenderTable* table)
 }
 
 
-#endif
+#endif // __DM_GSPLAT_HOOK__
