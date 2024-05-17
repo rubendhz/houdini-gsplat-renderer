@@ -1,0 +1,69 @@
+#ifndef __HDK_DM_GsplatHook__
+#define __HDK_DM_GsplatHook__
+
+#include <SOP/SOP_Node.h>
+
+#include <DM/DM_RenderTable.h>
+#include <DM/DM_SceneHook.h>
+#include <RE/RE_Geometry.h>
+
+#include "GSplatRenderer.h"
+
+#include <iostream>
+
+class MyCustomSceneRenderHook : public DM_SceneRenderHook {
+public:
+    MyCustomSceneRenderHook(DM_VPortAgent &vport, DM_ViewportType view_mask)
+        : DM_SceneRenderHook(vport, view_mask) {}
+
+    virtual bool render(RE_Render *r, const DM_SceneHookData &hook_data) override {
+        
+        GSplatRenderer::getInstance().purgeUnused();
+
+        GSplatRenderer::getInstance().generateRenderGeometry(r);
+
+        GSplatRenderer::getInstance().render(r);
+
+        GSplatRenderer::getInstance().postRender();
+
+        //GSplatRenderer::getInstance().pprint();
+
+        return true;
+    }
+};
+
+class MyCustomSceneHook : public DM_SceneHook 
+{
+public:
+    MyCustomSceneHook(const char* hook_name, int priority)
+        : DM_SceneHook(hook_name, priority, DM_HOOK_ALL_VIEWS) 
+        {
+
+        }
+
+    virtual DM_SceneRenderHook* newSceneRender(DM_VPortAgent& vport,
+                                               DM_SceneHookType type,
+                                               DM_SceneHookPolicy policy) override 
+    {
+        return new MyCustomSceneRenderHook(vport, DM_VIEWPORT_ALL);
+    }
+
+    virtual void retireSceneRender(DM_VPortAgent& vport,
+                                   DM_SceneRenderHook* hook) override 
+    {
+        delete hook;
+    }
+};
+
+
+void newRenderHook(DM_RenderTable* table) 
+{
+    // Create and register the scene hook that will create render hooks as needed
+    table->registerSceneHook(new MyCustomSceneHook("GSplat_RenderSceneHook", INT_MAX),
+                             DM_HOOK_BEAUTY, DM_HOOK_AFTER_NATIVE);
+
+    // TODO: should it be DM_HOOK_BEAUTY_TRANSPARENT instead of DM_HOOK_BEAUTY?
+}
+
+
+#endif
