@@ -9,6 +9,7 @@ TIER 1
 - [ ] View frustum culling
 
 TIER 2
+- [ ] Picking render mode
 - [ ] Spherical harmonics rotation
 - [ ] Move away from textures in favour of VAOs
 - [ ] Code cleanup
