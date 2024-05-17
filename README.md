@@ -7,10 +7,12 @@ TIER 1
 - [ ] Debug modes through detail attribs?
 - [ ] Pointer safety audit
 - [ ] View frustum culling
+
 TIER 2
 - [ ] Spherical harmonics rotation
 - [ ] Move away from textures in favour of VAOs
 - [ ] Code cleanup
+
 
 # Beyond MVP To-Do
 - [ ] Better orient fix in shader
