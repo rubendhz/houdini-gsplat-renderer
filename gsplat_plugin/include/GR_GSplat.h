@@ -54,7 +54,7 @@ public:
     /// Called whenever the parent detail is changed, draw modes are changed,
     /// selection is changed, or certain volatile display options are changed
     /// (such as level of detail).
-    void                update(RE_Render                 *r,
+    void                update(RE_RenderContext                 r,
 			       const GT_PrimitiveHandle  &primh,
 			       const GR_UpdateParms	 &p) override;
 
@@ -62,15 +62,15 @@ public:
     /// than one time per viewport redraw (beauty, shadow passes, wireframe-over)
     /// It also may be called outside of a viewport redraw to do picking of the
     /// geometry.
-    void                render(RE_Render              *r,
+    void                render(RE_RenderContext              r,
 			       GR_RenderMode	       render_mode,
 			       GR_RenderFlags	       flags,
 			       GR_DrawParms	       dp) override;
     void                renderDecoration(
-                                RE_Render *r,
+                                RE_RenderContext r,
 				GR_Decoration decor,
 				const GR_DecorationParms &parms) override;
-    int                 renderPick(RE_Render *r,
+    int                 renderPick(RE_RenderContext r,
 				   const GR_DisplayOption *opt,
 				   unsigned int pick_type,
 				   GR_PickStyle pick_style,

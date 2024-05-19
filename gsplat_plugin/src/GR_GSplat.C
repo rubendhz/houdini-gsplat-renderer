@@ -78,7 +78,7 @@ unsigned int closestSqrtPowerOf2(int n)
 
 void
 GR_PrimGsplat::update(
-	RE_Render		          *r,
+	RE_RenderContext		          r,
 	const GT_PrimitiveHandle  &primh,
 	const GR_UpdateParms      &p)
 {
@@ -274,7 +274,7 @@ GR_PrimGsplat::update(
 
 void
 GR_PrimGsplat::render(
-	RE_Render		    *r,
+	RE_RenderContext		    r,
 	GR_RenderMode	    render_mode,
 	GR_RenderFlags	    flags,
 	GR_DrawParms	    dp)
@@ -305,7 +305,7 @@ GR_PrimGsplat::render(
 
 void
 GR_PrimGsplat::renderDecoration(
-	RE_Render *r,
+	RE_RenderContext r,
 	GR_Decoration decor,
 	const GR_DecorationParms &p)
 {
@@ -313,7 +313,7 @@ GR_PrimGsplat::renderDecoration(
 }
 
 int
-GR_PrimGsplat::renderPick(RE_Render *r,
+GR_PrimGsplat::renderPick(RE_RenderContext r,
 			 const GR_DisplayOption *opt,
 			 unsigned int pick_type,
 			 GR_PickStyle pick_style,
