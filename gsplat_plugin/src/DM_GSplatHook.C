@@ -16,7 +16,7 @@ public:
     MyCustomSceneRenderHook(DM_VPortAgent &vport, DM_ViewportType view_mask)
         : DM_SceneRenderHook(vport, view_mask) {}
 
-    virtual bool render(RE_Render *r, const DM_SceneHookData &hook_data) override {
+    virtual bool render(RE_RenderContext r, const DM_SceneHookData &hook_data) override {
         
         GSplatRenderer::getInstance().purgeUnused();
 
