@@ -367,7 +367,6 @@ void GSplatRenderer::render(RE_RenderContext r)
         myTexSortedIndexNormalised->setTexture(r, zIndices_f.data());
     }
     
-
     // gaussians are rendered after all opaque objects (DM_GSplatHook calls this function after rendering all opaque objects)
     // therefore gaussians must be tested against Z buffer but do not write into it (1)
     // gaussians are rendered before all transparencies, therefore no interaction with transparencies is supported.    
@@ -375,6 +374,11 @@ void GSplatRenderer::render(RE_RenderContext r)
     r->pushShader(theGSShader);
 
     // Keep depth buffer check enabled but don't write to it (1)
+    r->pushDepthState();
+    //r->enableDepthTest();
+    r->disableDepthBufferWriting();
+
+    // Enable blending
     r->pushBlendState();
     r->blend(1); 
     r->setBlendFunction(RE_SBLEND_ONE_MINUS_DST_ALPHA, RE_DBLEND_ONE); 

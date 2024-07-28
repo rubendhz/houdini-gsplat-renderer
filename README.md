@@ -2,18 +2,15 @@
 A HDK/GLSL implementation of Gaussian Splatting
 
 # MVP To-Do
-TIER S
-- [ ] Debug json, release and debug setups (including hip files)
-- [ ] Clenup hipfile
-- [ ] Parallelise CPU sorting again
-- [ ] Wireframe depth or blend weirdness. some state conflict perhaps?
 
 TIER 1
-- [ ] VSCode relying on env variables
+- [ ] Clenup hipfile
+- [ ] Compatible with GSOPs
 - [ ] ShaderManager improvements, incl. multi render contexts (+cleanup)
 - [ ] Debug modes through detail attribs?
 - [ ] Pointer safety audit
 - [ ] View frustum culling
+- [ ] mega-slowdown past 2.1 mill
 
 TIER 2
 - [ ] Picking render mode
@@ -28,6 +25,7 @@ TIER 2
 - [ ] Viewport options exposed in UI
 - [ ] RenderToTexture, and/or ROP/COP nodes
 - [ ] Sorting via shader compute
+- [ ] VSCode relying on env variables & multi-platform launch configs
 
 
 
