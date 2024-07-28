@@ -79,7 +79,6 @@ bool GSplatRenderer::isSignificantMovement2(const UT_Vector3F& newPos, const UT_
 
 bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, const UT_Vector3F &ref_pos, const int pointCount) 
 {
-    // Initialize indices and distances vector if it's the first run or if point count has changed
     bool force = false;
     if (firstRun || zDistances.size() != static_cast<size_t>(pointCount)) 
     {
@@ -88,7 +87,6 @@ bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, c
     }
     
     bool sorted = false;
-    // Only recalculate distances and sort if there's been significant movement
     if (force || isSignificantMovement2(ref_pos, previous_ref_pos) || zIndices.empty()) 
     {    
         zDistances.resize(pointCount);
@@ -98,25 +96,30 @@ bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, c
         // Fill indices with 0, 1, 2, ...
         std::iota(zIndices.begin(), zIndices.end(), 0); 
         
-        // Calculate distances using transform
-        std::transform(zIndices.begin(), zIndices.end(), zDistances.begin(),
-                    [=, &posSplatPointsData, &ref_pos](size_t i) -> float {
-                        const UT_Vector3F& pi = posSplatPointsData[i];
-                        return (pi.x() - ref_pos.x()) * (pi.x() - ref_pos.x()) +
-                                (pi.y() - ref_pos.y()) * (pi.y() - ref_pos.y()) +
-                                (pi.z() - ref_pos.z()) * (pi.z() - ref_pos.z());
-                    });
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, pointCount),
+            [&](const tbb::blocked_range<size_t>& r) {
+                for (size_t i = r.begin(); i != r.end(); ++i) {
+                    const UT_Vector3F& pi = posSplatPointsData[i];
+                    float dx = pi.x() - ref_pos.x();
+                    float dy = pi.y() - ref_pos.y();
+                    float dz = pi.z() - ref_pos.z();
+                    zDistances[i] = dx * dx + dy * dy + dz * dz;
+                }
+            }
+        );
 
-        // Sort indices based on calculated distances
-        std::sort(zIndices.begin(), zIndices.end(),
-                [&](const size_t i, const size_t j) { return zDistances[i] < zDistances[j]; });
+        tbb::parallel_sort(zIndices.begin(), zIndices.end(),
+            [&](size_t i, size_t j) { return zDistances[i] < zDistances[j]; }
+        );
 
         // Transform indices to normalized values
-        //float invPointCount = 1.0f / static_cast<float>(pointCount);
-        std::transform(zIndices.begin(), zIndices.end(), zIndices_f.begin(),
-                    [pointCount](size_t idx) -> float {
-                        return static_cast<float>(idx) / pointCount;
-                    });
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, pointCount),
+            [&](const tbb::blocked_range<size_t>& r) {
+                for (size_t i = r.begin(); i != r.end(); ++i) {
+                    zIndices_f[i] = static_cast<float>(zIndices[i]) / pointCount;
+                }
+            }
+        );
 
         sort_distance_accum = 0.0;
         sorted = true;
@@ -126,7 +129,6 @@ bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, c
 
     return sorted;
 }
-
 
 void GSplatRenderer::update(
     const GT_PrimitiveHandle primHandle, 

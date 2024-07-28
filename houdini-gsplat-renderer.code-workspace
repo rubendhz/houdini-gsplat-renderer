@@ -10,7 +10,8 @@
 	"settings": {
 		"files.associations": {
 			"*.C": "cpp",
-			"ostream": "cpp"
+			"ostream": "cpp",
+			"execution": "cpp"
 		}
 	}
 }
