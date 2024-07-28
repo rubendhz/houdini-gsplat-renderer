@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "/Applications/Houdini/Houdini20.5.278/Frameworks/Houdini.framework"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.C": "cpp",
+			"ostream": "cpp"
+		}
+	}
+}

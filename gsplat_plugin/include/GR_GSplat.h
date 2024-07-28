@@ -105,7 +105,7 @@ private:
 	}
 
     int	myID;
-    bool myInstancedFlag;
+    //bool myInstancedFlag;
     RE_Geometry *myWireframeGeo;
     GA_Size gSplatCount;
     GT_PrimitiveHandle gt_prim;

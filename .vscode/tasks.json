@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "gsplat_compile_debug_macos",
+            "type": "shell",
+            "command": "cd '/Applications/Houdini/Houdini20.5.278/Frameworks/Houdini.framework/Versions/Current/Resources' && source ./houdini_setup && cd - && cd /Users/ruben/Dev/houdini-gsplat-renderer/gsplat_plugin && HCUSTOM_VERBOSE=1 HCUSTOM_CFLAGS=\"-std=c++17 -g -O0\" hcustom -I include -I shaders gsplat.C",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "gsplat_compile_release_macos",
+            "type": "shell",
+            "command": "cd '/Applications/Houdini/Houdini20.5.278/Frameworks/Houdini.framework/Versions/Current/Resources' && source ./houdini_setup && cd - && cd /Users/ruben/Dev/houdini-gsplat-renderer/gsplat_plugin && HCUSTOM_CFLAGS=\"-std=c++17\" hcustom -I include -I shaders gsplat.C",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        }
+    ]
+}

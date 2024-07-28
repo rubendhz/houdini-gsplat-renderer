@@ -1,4 +1,4 @@
-#include <GSplatRenderer.h>
+#include "GSplatRenderer.h" 
 #include "GR_GSplat.h"
 
 #include <UT/UT_Set.h>
@@ -99,7 +99,7 @@ bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, c
         std::iota(zIndices.begin(), zIndices.end(), 0); 
         
         // Calculate distances using transform
-        std::transform(std::execution::par, zIndices.begin(), zIndices.end(), zDistances.begin(),
+        std::transform(zIndices.begin(), zIndices.end(), zDistances.begin(),
                     [=, &posSplatPointsData, &ref_pos](size_t i) -> float {
                         const UT_Vector3F& pi = posSplatPointsData[i];
                         return (pi.x() - ref_pos.x()) * (pi.x() - ref_pos.x()) +
@@ -108,12 +108,12 @@ bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, c
                     });
 
         // Sort indices based on calculated distances
-        std::sort(std::execution::par, zIndices.begin(), zIndices.end(),
+        std::sort(zIndices.begin(), zIndices.end(),
                 [&](const size_t i, const size_t j) { return zDistances[i] < zDistances[j]; });
 
         // Transform indices to normalized values
         //float invPointCount = 1.0f / static_cast<float>(pointCount);
-        std::transform(std::execution::par, zIndices.begin(), zIndices.end(), zIndices_f.begin(),
+        std::transform(zIndices.begin(), zIndices.end(), zIndices_f.begin(),
                     [pointCount](size_t idx) -> float {
                         return static_cast<float>(idx) / pointCount;
                     });
@@ -340,7 +340,7 @@ void GSplatRenderer::generateRenderGeometry(RE_Render *r)
     }
 }
 
-void GSplatRenderer::render(RE_Render *r) 
+void GSplatRenderer::render(RE_RenderContext r) 
 {
     if (!this->render_enabled || !can_render)
     {
@@ -368,21 +368,20 @@ void GSplatRenderer::render(RE_Render *r)
 
     // gaussians are rendered after all opaque objects (DM_GSplatHook calls this function after rendering all opaque objects)
     // therefore gaussians must be tested against Z buffer but do not write into it (1)
-    // gaussians are rendered before all transparencies, therefore no interaction with transparencies is supported.
+    // gaussians are rendered before all transparencies, therefore no interaction with transparencies is supported.    
     RE_Shader* theGSShader = GsplatShaderManager::getInstance().getShader(GsplatShaderManager::GSPLAT_MAIN_SHADER, r);
     r->pushShader(theGSShader);
 
     // Keep depth buffer check enabled but don't write to it (1)
-    r->pushDepthState();
-    //r->enableDepthTest();
-    r->disableDepthBufferWriting();
-            
-    // Enable blending
     r->pushBlendState();
     r->blend(1); 
     r->setBlendFunction(RE_SBLEND_ONE_MINUS_DST_ALPHA, RE_DBLEND_ONE); 
-    r->setAlphaBlendFunction(RE_SBLEND_ONE_MINUS_DST_ALPHA, RE_DBLEND_ONE); 
-    r->setBlendEquation(RE_BLEND_ADD); 
+    r->setAlphaBlendFunction(RE_SBLEND_ONE_MINUS_DST_ALPHA, RE_DBLEND_ONE);
+
+    if (r->getBlendEquation() != RE_BLEND_ADD)
+    {
+        r->setBlendEquation(RE_BLEND_ADD);
+    }
 
     theGSShader->bindInt(r, "gSplatCount", splatCount);
     theGSShader->bindInt(r, "gSplatVertexCount", 6);

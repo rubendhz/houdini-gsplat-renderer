@@ -78,7 +78,7 @@ unsigned int closestSqrtPowerOf2(int n)
 
 void
 GR_PrimGsplat::update(
-	RE_RenderContext		          r,
+	RE_RenderContext          r,
 	const GT_PrimitiveHandle  &primh,
 	const GR_UpdateParms      &p)
 {
@@ -212,6 +212,7 @@ GR_PrimGsplat::update(
 
 	GR_UpdateParms dp(p);
 
+	/*
 	const int verticesPerQuad_wireframe = 8;
 	myWireframeGeo->setNumPoints(gSplatCount * verticesPerQuad_wireframe);
 	RE_VertexArray *posWire = myWireframeGeo->findCachedAttrib(r, posname, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
@@ -258,7 +259,7 @@ GR_PrimGsplat::update(
     }
 
 	myWireframeGeo->connectAllPrims(r, RE_GEO_WIRE_IDX, RE_PRIM_LINES, NULL, true);
-	
+	*/
 	GSplatRenderer::getInstance().update(gt_prim, 
 										 dp.geo_version, 
 										 gSplatCount, 
@@ -279,6 +280,7 @@ GR_PrimGsplat::render(
 	GR_RenderFlags	    flags,
 	GR_DrawParms	    dp)
 {
+	/*
 	if(!myWireframeGeo)
 	{
 		return;
@@ -299,7 +301,9 @@ GR_PrimGsplat::render(
 		//myWireframeGeo->drawInstanced(r, RE_GEO_WIRE_IDX, gSplatCount);
 		r->popShader();
 	}
+	*/
 
+	GSplatRenderer::getInstance().setRenderingEnabled(true); 
 	GSplatRenderer::getInstance().includeInRenderPass(gt_prim);
 }
 

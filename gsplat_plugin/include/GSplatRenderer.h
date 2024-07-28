@@ -8,7 +8,8 @@
 #include <GA/GA_Types.h>
 #include <RE/RE_Geometry.h>
 #include <GT/GT_GEOPrimitive.h>
-#include <UT_GSplatVectorTypes.h>
+#include <RE/RE_RenderContext.h>
+#include "UT_GSplatVectorTypes.h"
 
 
 class GSplatRenderer {
@@ -96,7 +97,8 @@ public:
 
     void generateRenderGeometry(RE_Render *r);
 
-    void render(RE_Render *r);
+    //void render(RE_Render *r);
+    void render(RE_RenderContext r);
 
     void postRender();
 
