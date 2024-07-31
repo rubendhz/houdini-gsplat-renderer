@@ -18,7 +18,7 @@ GSplatRenderer::GSplatRenderer()
     myGSplatShTexDim = 0;
     myTexGsplatColorAlphaScaleOrient = NULL;
     myGSplatColorAlphaScaleOrientTexDim = 0;
-    previous_ref_pos = UT_Vector3F(0, 0, 0); 
+    myPreviousCameraPos = UT_Vector3F(0, 0, 0); 
     sort_distance_accum = 0.0;
     firstRun = true;
     myShDataPresent = false;
@@ -77,7 +77,7 @@ bool GSplatRenderer::isSignificantMovement2(const UT_Vector3F& newPos, const UT_
     return false;
 }
 
-bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, const UT_Vector3F &ref_pos, const int pointCount) 
+bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, const UT_Vector3F &cameraPos, const int pointCount) 
 {
     bool force = false;
     if (firstRun || zDistances.size() != static_cast<size_t>(pointCount)) 
@@ -87,7 +87,7 @@ bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, c
     }
     
     bool sorted = false;
-    if (force || isSignificantMovement2(ref_pos, previous_ref_pos) || zIndices.empty()) 
+    if (force || isSignificantMovement2(cameraPos, myPreviousCameraPos) || zIndices.empty()) 
     {    
         zDistances.resize(pointCount);
         zIndices.resize(pointCount);
@@ -100,9 +100,9 @@ bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, c
             [&](const tbb::blocked_range<size_t>& r) {
                 for (size_t i = r.begin(); i != r.end(); ++i) {
                     const UT_Vector3F& pi = posSplatPointsData[i];
-                    float dx = pi.x() - ref_pos.x();
-                    float dy = pi.y() - ref_pos.y();
-                    float dz = pi.z() - ref_pos.z();
+                    float dx = pi.x() - cameraPos.x();
+                    float dy = pi.y() - cameraPos.y();
+                    float dz = pi.z() - cameraPos.z();
                     zDistances[i] = dx * dx + dy * dy + dz * dz;
                 }
             }
@@ -125,7 +125,7 @@ bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, c
         sorted = true;
     }
 
-    previous_ref_pos = ref_pos;
+    myPreviousCameraPos = cameraPos;
 
     return sorted;
 }
@@ -143,6 +143,8 @@ void GSplatRenderer::update(
     const MyUT_Matrix4HArray& splatShys,
     const MyUT_Matrix4HArray& splatShzs) 
 {
+    std::cout << "GSplatRenderer::update - primHandle:" << primHandle << std::endl;
+
     if (!myRenderStateRegistry[primHandle]) 
     {
         myRenderStateRegistry[primHandle] = std::make_unique<GSplatRegisterEntry>();
@@ -172,6 +174,8 @@ void GSplatRenderer::update(
 
 void GSplatRenderer::includeInRenderPass(GT_PrimitiveHandle primHandle) 
 {
+    //std::cout << "GSplatRenderer::includeInRenderPass - primHandle:" << primHandle << std::endl;
+
     if (myRenderStateRegistry[primHandle]) 
     {
         ++myRenderStateRegistry[primHandle]->age;
@@ -179,12 +183,15 @@ void GSplatRenderer::includeInRenderPass(GT_PrimitiveHandle primHandle)
     }
 }
 
-void GSplatRenderer::generateRenderGeometry(RE_Render *r)
+void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
 {
     if (isRenderStateRegistryCurrent())
     {
+        //std::cout << "GSplatRenderer::generateRenderGeometry - CURRENT, RSRegistry and CacheVersions: " << myRenderStateRegistry.size() << " " << myCurrentCacheVersions.size() << std::endl;        
         return;
     }
+
+    //std::cout << "GSplatRenderer::generateRenderGeometry - NOT CURRENT" << std::endl;
 
     myCurrentCacheVersions.clear();
     GA_Size totalSplatCount = 0; 
@@ -255,12 +262,12 @@ void GSplatRenderer::generateRenderGeometry(RE_Render *r)
         }
 
         // DEBUG print texture dimensions
-        // std::cout << "myGSplatSortedIndexTexDim: " << myGSplatSortedIndexTexDim << "x" << myGSplatSortedIndexTexDim << std::endl;
-        // std::cout << "myGSplatColorAlphaScaleOrientTexDim: " << myGSplatColorAlphaScaleOrientTexDim << "x" << myGSplatColorAlphaScaleOrientTexDim << std::endl;
-        // std::cout << "myGSplatShTexDim: " << myGSplatShTexDim << "x" << myGSplatShTexDim << std::endl;
+        // //std::cout << "myGSplatSortedIndexTexDim: " << myGSplatSortedIndexTexDim << "x" << myGSplatSortedIndexTexDim << std::endl;
+        // //std::cout << "myGSplatColorAlphaScaleOrientTexDim: " << myGSplatColorAlphaScaleOrientTexDim << "x" << myGSplatColorAlphaScaleOrientTexDim << std::endl;
+        // //std::cout << "myGSplatShTexDim: " << myGSplatShTexDim << "x" << myGSplatShTexDim << std::endl;
         // GLint maxTextureSize = 0;
         // glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-        // std::cout << "GL_MAX_TEXTURE_SIZE: " << maxTextureSize << std::endl;
+        // //std::cout << "GL_MAX_TEXTURE_SIZE: " << maxTextureSize << std::endl;
 
         int offset = 0;
         for (UT_Map<GT_PrimitiveHandle, RE_CacheVersion>::const_iterator it = myCurrentCacheVersions.begin(); it != myCurrentCacheVersions.end(); ++it)
@@ -344,10 +351,22 @@ void GSplatRenderer::generateRenderGeometry(RE_Render *r)
 
 void GSplatRenderer::render(RE_RenderContext r) 
 {
+    //std::cout << "GSplatRenderer::render" << std::endl;
     if (!this->render_enabled || !can_render)
     {
         return;
     }
+
+    bool anythingRenderable = false;
+    for (std::pair<const GT_PrimitiveHandle, std::unique_ptr<GSplatRenderer::GSplatRegisterEntry>>& entry : myRenderStateRegistry) {
+        anythingRenderable |= entry.second->active;
+    }
+
+    if (!anythingRenderable)
+    {
+        return;
+    }
+
 
     UT_Matrix4D view_mat;
     r->getMatrix(view_mat);
@@ -422,6 +441,7 @@ void GSplatRenderer::render(RE_RenderContext r)
 
 void GSplatRenderer::postRender() 
 {
+    //std::cout << "GSplatRenderer::postRender" << std::endl;
     for (std::pair<const GT_PrimitiveHandle, std::unique_ptr<GSplatRenderer::GSplatRegisterEntry>>& entry : myRenderStateRegistry) {
         entry.second->active = false;
     }
@@ -429,30 +449,46 @@ void GSplatRenderer::postRender()
 
 void GSplatRenderer::purgeUnused() 
 {
+    int purged = 0;
     for (UT_Map<GT_PrimitiveHandle, std::unique_ptr<GSplatRenderer::GSplatRegisterEntry>>::iterator it = myRenderStateRegistry.begin(); it != myRenderStateRegistry.end(); ) 
     {
-        if (!it->first || !it->second->active) 
+        GT_PrimitiveHandle primHandle = it->first;
+        std::unique_ptr<GSplatRenderer::GSplatRegisterEntry>& gsplatEntryPtr = it->second;
+
+        if (!primHandle || !gsplatEntryPtr || !gsplatEntryPtr->active) 
         {
-            it = myRenderStateRegistry.erase(it);
+            it = myRenderStateRegistry.erase(it); 
+            ++purged;
         } 
         else 
         {
             ++it;
         }
     }
+    //std::cout << "GSplatRenderer::purgeUnused - " << purged << std::endl;
+}
+
+void GSplatRenderer::deregisterPrimitive(GT_PrimitiveHandle primHandle)
+{
+    UT_Map<GT_PrimitiveHandle, std::unique_ptr<GSplatRenderer::GSplatRegisterEntry>>::iterator it_rs = myRenderStateRegistry.find(primHandle);
+    myRenderStateRegistry.erase(it_rs);
+
+    //UT_Map<GT_PrimitiveHandle, RE_CacheVersion>::iterator it_v = myCurrentCacheVersions.find(primHandle);
+    //myCurrentCacheVersions.erase(it_v);
 }
 
 void GSplatRenderer::pprint() 
 {
-    std::cout << "GPLAT REGISTRY:" << std::endl;
+    //std::cout << "GPLAT REGISTRY:" << std::endl;
     for (std::pair<const GT_PrimitiveHandle, std::unique_ptr<GSplatRenderer::GSplatRegisterEntry>>& entry : myRenderStateRegistry) 
     {
-        std::cout << "Gsplat: " << entry.first << " (age: " << entry.second->age << ")" << " (splat_count: " << entry.second->splatCount << ")" << " (version: " << entry.second->cacheVersion << ")" << std::endl;
+        //std::cout << "Gsplat: " << entry.first << " (age: " << entry.second->age << ")" << " (splat_count: " << entry.second->splatCount << ")" << " (version: " << entry.second->cacheVersion << ")" << std::endl;
     }
-    std::cout << "--" << std::endl;
+    //std::cout << "--" << std::endl;
 }
 
 void GSplatRenderer::setRenderingEnabled(bool render_enabled) 
 {
+    //std::cout << "GSplatRenderer::setRenderingEnabled" << std::endl;
     this->render_enabled = render_enabled;
 }

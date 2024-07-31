@@ -18,7 +18,7 @@ public:
 
     virtual bool render(RE_RenderContext r, const DM_SceneHookData &hook_data) override {
         
-        GSplatRenderer::getInstance().purgeUnused();
+        //GSplatRenderer::getInstance().purgeUnused();
 
         GSplatRenderer::getInstance().generateRenderGeometry(r);
 

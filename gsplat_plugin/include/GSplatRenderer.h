@@ -53,7 +53,7 @@ private:
     // Global or static variables to maintain state across calls
     //State for sorting
     std::vector<float> distances;
-    UT_Vector3F previous_ref_pos; // Initialize to a default value
+    UT_Vector3F myPreviousCameraPos; 
     float sort_distance_accum = 0.0;
     bool firstRun;
     std::vector<float> normalizedValues;
@@ -94,8 +94,9 @@ public:
         const MyUT_Matrix4HArray& splatShzs);
 
     void includeInRenderPass(GT_PrimitiveHandle primHandle);
+    void deregisterPrimitive(GT_PrimitiveHandle primHandle);
 
-    void generateRenderGeometry(RE_Render *r);
+    void generateRenderGeometry(RE_RenderContext r);
 
     //void render(RE_Render *r);
     void render(RE_RenderContext r);

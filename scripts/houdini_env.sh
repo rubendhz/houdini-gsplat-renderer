@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Script intended to be sourced, e.g. "source scripts/houdini_env.sh"
+
 # Determine the platform
 case "$(uname -s)" in
     Darwin)
@@ -19,7 +21,7 @@ esac
 
 # Source the Houdini setup script
 cd "$HOUDINI_BASE"
-source "houdini_setup"
+source houdini_setup
 cd "-"
 
 # Optionally export other convenient environment variables

@@ -51,7 +51,9 @@ GR_PrimGsplat::GR_PrimGsplat(
 
 GR_PrimGsplat::~GR_PrimGsplat()
 {
-    delete myWireframeGeo;
+	std::cout << "when does this happen???" << std::endl;
+    GSplatRenderer::getInstance().deregisterPrimitive(gt_prim);
+	delete myWireframeGeo;
 }
 
 GR_PrimAcceptResult
@@ -82,6 +84,8 @@ GR_PrimGsplat::update(
 	const GT_PrimitiveHandle  &primh,
 	const GR_UpdateParms      &p)
 {
+	std::cout << "GR_PrimGsplat::update - primHandle " << primh << std::endl;
+
 	gt_prim = primh.get();
 
     // Fetch the GEO primitive from the GT primitive handle
@@ -274,11 +278,12 @@ GR_PrimGsplat::update(
 
 void
 GR_PrimGsplat::render(
-	RE_RenderContext		    r,
+	RE_RenderContext	r,
 	GR_RenderMode	    render_mode,
 	GR_RenderFlags	    flags,
 	GR_DrawParms	    dp)
 {
+	std::cout << "GR_PrimGsplat::render - primHandle: " << gt_prim << std::endl;
 	if(!myWireframeGeo)
 	{
 		return;

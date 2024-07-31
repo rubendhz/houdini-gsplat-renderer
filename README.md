@@ -14,6 +14,7 @@ TIER 1
 
 TIER 2
 - [ ] Picking render mode
+- [ ] Animated attributes
 - [ ] Spherical harmonics rotation
 - [ ] Move away from textures in favour of VAOs
 - [ ] Code cleanup
@@ -23,7 +24,7 @@ TIER 2
 - [ ] Better orient fix in shader
 - [ ] Integration with other CG
 - [ ] Viewport options exposed in UI
-- [ ] RenderToTexture, and/or ROP/COP nodes
+- [ ] RenderToTexture, and/or ROP/COP nodes? Overlap with other projects! 
 - [ ] Sorting via shader compute
 - [ ] VSCode relying on env variables & multi-platform launch configs
 
