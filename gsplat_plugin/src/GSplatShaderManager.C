@@ -1,4 +1,4 @@
-#include "GSplatShaderManager.h" 
+#include "GSplatShaderManager.h"
 #include "GSplatShaderSource.h"
 
 #include <iostream>
