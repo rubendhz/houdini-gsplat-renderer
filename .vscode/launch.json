@@ -1,0 +1,43 @@
+{
+    // HDK debugging ref: https://www.sidefx.com/docs/hdk/_h_d_k__intro__debugging.html
+    // VSCode Launch Configs ref: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Houdini GSplatRenderer Debug, MacOS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/Applications/Houdini/Houdini20.5.278/Houdini FX 20.5.278.app/Contents/MacOS/houdini",
+            "args": ["hip/gsplat_dev_v001_dev.hipnc"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for LLDB",
+                    "text": "-enable-pretty-printing"
+                }
+            ],
+            "logging": {
+                "engineLogging": true,
+                "trace": true
+            },
+            "preLaunchTask": "gsplat_compile_debug_macos"
+        }, 
+        {
+            "name": "Houdini GSplatRenderer Release, MacOS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/Applications/Houdini/Houdini20.5.278/Houdini FX 20.5.278.app/Contents/MacOS/houdini",
+            "args": ["hip/gsplat_dev_v001_dev.hipnc"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "gsplat_compile_release_macos"
+        }
+    ]
+}

@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "/Applications/Houdini/Houdini20.5.278/Frameworks/Houdini.framework"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.C": "cpp",
+			"*.cpp": "cpp",
+			"*.h": "cpp",
+			"*.hpp": "cpp",
+			"*.ipp": "cpp",
+			"*.tpp": "cpp",  // Template implementation files
+			"*.inl": "cpp",  // Inline files
+
+			// Associate standard C++ library headers
+			"iostream": "cpp",
+			"*.hxx": "cpp"  // Any other C++ related extensions
+		}
+	}
+}

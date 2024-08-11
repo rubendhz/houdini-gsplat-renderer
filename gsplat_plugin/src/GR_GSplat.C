@@ -1,5 +1,5 @@
 #include "GR_GSplat.h"
-#include "GEO_GSplat.h"
+
 #include "GSplatRenderer.h"
 #include "GSplatShaderManager.h"
 
@@ -12,8 +12,7 @@
 #include <RE/RE_VertexArray.h>
 #include <GT/GT_GEOPrimitive.h>
 #include <GA/GA_Iterator.h>
-
-#include <iostream>
+#include <OP/OP_Node.h>
 
 
 
@@ -51,7 +50,11 @@ GR_PrimGsplat::GR_PrimGsplat(
 
 GR_PrimGsplat::~GR_PrimGsplat()
 {
-    delete myWireframeGeo;
+	if (myRegistryId != "")
+	{
+		GSplatRenderer::getInstance().flushEntriesForMatchingDetail(myRegistryId);
+	}	
+	delete myWireframeGeo;
 }
 
 GR_PrimAcceptResult
@@ -78,14 +81,14 @@ unsigned int closestSqrtPowerOf2(int n)
 
 void
 GR_PrimGsplat::update(
-	RE_Render		          *r,
+	RE_RenderContext          r,
 	const GT_PrimitiveHandle  &primh,
 	const GR_UpdateParms      &p)
 {
-	gt_prim = primh.get();
+	std::cout << "GR_PrimGsplat::update - primHandle " << primh << std::endl;
 
-    // Fetch the GEO primitive from the GT primitive handle
-    const GEO_PrimGsplat *gplat = NULL;
+	// Fetch the GEO primitive from the GT primitive handle
+    const GEO_PrimGsplat *gSplatPrim = NULL;
     
     // GL3 and above requires named vertex attributes, while GL2 and GL1 use
     // the older builtin names.
@@ -98,9 +101,9 @@ GR_PrimGsplat::update(
 		myWireframeGeo = new RE_Geometry;
     myWireframeGeo->cacheBuffers(getCacheName());
 
-    getGEOPrimFromGT<GEO_PrimGsplat>(primh, gplat);
+    getGEOPrimFromGT<GEO_PrimGsplat>(primh, gSplatPrim);
 	
-	if(!gplat)
+	if(!gSplatPrim || gSplatPrim->getVertexCount() == 0)
     {
 		delete myWireframeGeo;
 		myWireframeGeo = NULL;
@@ -165,21 +168,21 @@ GR_PrimGsplat::update(
 	SHHandles shHandles;
 	bool sh_data_found = initAllSHHandles(dtl, shHandles);
 
-	gSplatCount = gplat->getVertexCount(); // Now this represents the count for the current primitive only
-	mySplatPts.setSize(gSplatCount);
-	mySplatColors.setSize(gSplatCount);
-	mySplatAlphas.setSize(gSplatCount);
-	mySplatScales.setSize(gSplatCount);
-	mySplatOrients.setSize(gSplatCount);
+	myGsplatCount = gSplatPrim->getVertexCount(); // Now this represents the count for the current primitive only
+	mySplatPts.setSize(myGsplatCount);
+	mySplatColors.setSize(myGsplatCount);
+	mySplatAlphas.setSize(myGsplatCount);
+	mySplatScales.setSize(myGsplatCount);
+	mySplatOrients.setSize(myGsplatCount);
 	
-	myShxs.setSize(sh_data_found ? gSplatCount : 0);
-	myShys.setSize(sh_data_found ? gSplatCount : 0);
-	myShzs.setSize(sh_data_found ? gSplatCount : 0);
+	myShxs.setSize(sh_data_found ? myGsplatCount : 0);
+	myShys.setSize(sh_data_found ? myGsplatCount : 0);
+	myShzs.setSize(sh_data_found ? myGsplatCount : 0);
 	
-	tbb::parallel_for(tbb::blocked_range<GA_Size>(0, gSplatCount),
+	tbb::parallel_for(tbb::blocked_range<GA_Size>(0, myGsplatCount),
 		[&](const tbb::blocked_range<GA_Size>& r) {
 			for (GA_Size i = r.begin(); i != r.end(); ++i) {
-				const GA_Offset ptoff = gplat->getVertexOffset(i);
+				const GA_Offset ptoff = gSplatPrim->getVertexOffset(i);
 				const UT_Vector3 pos = dtl->getPos3(ptoff);
 				const UT_Vector3 color = colorHandle.get(ptoff);
 				const float alpha = alphaHandle.get(ptoff);
@@ -213,7 +216,7 @@ GR_PrimGsplat::update(
 	GR_UpdateParms dp(p);
 
 	const int verticesPerQuad_wireframe = 8;
-	myWireframeGeo->setNumPoints(gSplatCount * verticesPerQuad_wireframe);
+	myWireframeGeo->setNumPoints(myGsplatCount * verticesPerQuad_wireframe);
 	RE_VertexArray *posWire = myWireframeGeo->findCachedAttrib(r, posname, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
 	RE_VertexArray *colorWire = myWireframeGeo->findCachedAttrib(r, colorname, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
     RE_VertexArray *orientWire = myWireframeGeo->findCachedAttrib(r, orientname, RE_GPU_FLOAT16, 4, RE_ARRAY_POINT, true);
@@ -229,7 +232,7 @@ GR_PrimGsplat::update(
 		if(pdata && colordata && orientdata && scaledata)
 		{
 			int verticesPerQuad = 8;
-			tbb::parallel_for(tbb::blocked_range<int>(0, gSplatCount),
+			tbb::parallel_for(tbb::blocked_range<int>(0, myGsplatCount),
 				[&](const tbb::blocked_range<int>& r) {
 					for(int t = r.begin(); t != r.end(); ++t) {
 						int offset = t * verticesPerQuad_wireframe;
@@ -258,10 +261,13 @@ GR_PrimGsplat::update(
     }
 
 	myWireframeGeo->connectAllPrims(r, RE_GEO_WIRE_IDX, RE_PRIM_LINES, NULL, true);
-	
-	GSplatRenderer::getInstance().update(gt_prim, 
+
+	myRegistryId = GSplatRenderer::getInstance().registerUpdate(
+										 dtl,
 										 dp.geo_version, 
-										 gSplatCount, 
+										 gSplatPrim->getVertexOffset(0),
+
+										 myGsplatCount, 
 										 mySplatPts, 
 										 mySplatColors, 
 										 mySplatAlphas,
@@ -274,7 +280,7 @@ GR_PrimGsplat::update(
 
 void
 GR_PrimGsplat::render(
-	RE_Render		    *r,
+	RE_RenderContext	r,
 	GR_RenderMode	    render_mode,
 	GR_RenderFlags	    flags,
 	GR_DrawParms	    dp)
@@ -284,7 +290,7 @@ GR_PrimGsplat::render(
 		return;
 	}
 
-	GSplatRenderer::getInstance().setRenderingEnabled(render_mode < GR_RENDER_NUM_BEAUTY_MODES); //TODO, send r here, as different viewports could have different render modes.
+	GSplatRenderer::getInstance().setRenderingEnabled(render_mode < GR_RENDER_NUM_BEAUTY_MODES); //TODO, pass in r here, as different viewports could have different render modes.
 
 	bool need_wire = (render_mode == GR_RENDER_WIREFRAME ||
 		      (flags & GR_RENDER_FLAG_WIRE_OVER));
@@ -294,18 +300,15 @@ GR_PrimGsplat::render(
 		RE_Shader* sh = GsplatShaderManager::getInstance().getShader(GsplatShaderManager::GSPLAT_WIRE_SHADER, r);
 		r->pushShader(sh);
 		myWireframeGeo->draw(r, RE_GEO_WIRE_IDX);
-
-		//TODO: INSTANCED VERSION
-		//myWireframeGeo->drawInstanced(r, RE_GEO_WIRE_IDX, gSplatCount);
 		r->popShader();
 	}
 
-	GSplatRenderer::getInstance().includeInRenderPass(gt_prim);
+	GSplatRenderer::getInstance().includeInRenderPass(myRegistryId);
 }
 
 void
 GR_PrimGsplat::renderDecoration(
-	RE_Render *r,
+	RE_RenderContext r,
 	GR_Decoration decor,
 	const GR_DecorationParms &p)
 {
@@ -313,7 +316,7 @@ GR_PrimGsplat::renderDecoration(
 }
 
 int
-GR_PrimGsplat::renderPick(RE_Render *r,
+GR_PrimGsplat::renderPick(RE_RenderContext r,
 			 const GR_DisplayOption *opt,
 			 unsigned int pick_type,
 			 GR_PickStyle pick_style,

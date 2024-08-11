@@ -2,14 +2,20 @@
 A HDK/GLSL implementation of Gaussian Splatting
 
 # MVP To-Do
+
 TIER 1
+- [ ] Blast after output
+- [ ] Texture memory management
+- [ ] Cleanup hipfile
+- [ ] Compatible with GSOPs
 - [ ] ShaderManager improvements, incl. multi render contexts (+cleanup)
 - [ ] Debug modes through detail attribs?
-- [ ] Pointer safety audit
 - [ ] View frustum culling
+- [ ] mega-slowdown past 2.1 mill
 
 TIER 2
 - [ ] Picking render mode
+- [ ] Animated attributes
 - [ ] Spherical harmonics rotation
 - [ ] Move away from textures in favour of VAOs
 - [ ] Code cleanup
@@ -19,8 +25,9 @@ TIER 2
 - [ ] Better orient fix in shader
 - [ ] Integration with other CG
 - [ ] Viewport options exposed in UI
-- [ ] RenderToTexture, and/or ROP/COP nodes
+- [ ] RenderToTexture, and/or ROP/COP nodes? Overlap with other projects! 
 - [ ] Sorting via shader compute
+- [ ] VSCode relying on env variables & multi-platform launch configs
 
 
 

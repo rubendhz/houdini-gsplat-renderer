@@ -32,7 +32,10 @@ newSopOperator(OP_OperatorTable *table)
         1,                          // Min # of sources
         1,                          // Max # of sources
         nullptr,                    // Local variables  
-        0));                        // Flags it's not as generator (i.e. OP_FLAG_GENERATOR)    
+        0,                          // Flags it's not as generator (i.e. OP_FLAG_GENERATOR)  
+        nullptr,                    // Input labels
+        0                           // Max outputs
+        ));                          
 }
 
 PRM_Template

@@ -315,8 +315,11 @@ bool GEO_PrimGsplat::loadVertexArray(UT_JSONParser &p, const GA_LoadMap &map)
 bool
 GEO_PrimGsplat::getBBox(UT_BoundingBox *bbox) const
 {
+    GA_Size vtx_count = getVertexCount();
+    if (!vtx_count)
+        return false;
     bbox->initBounds(getPos3(0));
-    for (int i = 0; i < getVertexCount(); ++i)
+    for (int i = 0; i < vtx_count; ++i)
         bbox->enlargeBounds(getPos3(i));
     return true;
 }
