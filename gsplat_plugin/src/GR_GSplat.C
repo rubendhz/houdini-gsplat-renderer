@@ -51,12 +51,10 @@ GR_PrimGsplat::GR_PrimGsplat(
 {
     myID = prim->getTypeId().get();
 	myWireframeGeo = NULL;
-	//myPrimitiveHandle = NULL; // only to store the prim handle between update and render calls
 }
 
 GR_PrimGsplat::~GR_PrimGsplat()
 {
-	//std::cout << "GR_PrimGsplat::destroy - primHandle " << myPrimitiveHandle << std::endl;
 	if (myRegistryId != "")
 	{
 		GSplatRenderer::getInstance().flushEntriesForMatchingDetail(myRegistryId);
@@ -86,19 +84,6 @@ unsigned int closestSqrtPowerOf2(int n)
     return std::pow(2, power);
 }
 
-// std::string GR_PrimGsplat::generatePrimID(const GU_Detail *dtl, const GEO_PrimGsplat *prim)
-// {
-// 	std::ostringstream oss;
-//     oss << std::hex << std::showbase << reinterpret_cast<uintptr_t>(dtl) << "__" << std::dec << prim->getPointIndex(0);
-// 	myGsplatStrId = oss.str();
-// 	return myGsplatStrId;
-// }
-
-// std::string GR_PrimGsplat::getPrimID()
-// {
-// 	return myGsplatStrId;
-// }
-
 void
 GR_PrimGsplat::update(
 	RE_RenderContext          r,
@@ -107,9 +92,7 @@ GR_PrimGsplat::update(
 {
 	std::cout << "GR_PrimGsplat::update - primHandle " << primh << std::endl;
 
-	//myPrimitiveHandle = primh.get();
-
-    // Fetch the GEO primitive from the GT primitive handle
+	// Fetch the GEO primitive from the GT primitive handle
     const GEO_PrimGsplat *gSplatPrim = NULL;
     
     // GL3 and above requires named vertex attributes, while GL2 and GL1 use
@@ -284,23 +267,6 @@ GR_PrimGsplat::update(
 
 	myWireframeGeo->connectAllPrims(r, RE_GEO_WIRE_IDX, RE_PRIM_LINES, NULL, true);
 
-	// GSplatRenderer::getInstance().registerUpdate(generatePrimID(dtl, gSplatPrim), 
-	// 									 dp.geo_version, 
-	// 									 myGsplatCount, 
-	// 									 mySplatPts, 
-	// 									 mySplatColors, 
-	// 									 mySplatAlphas,
-	// 									 mySplatScales,
-	// 									 mySplatOrients,
-	// 									 myShxs,
-	// 									 myShys,
-	// 									 myShzs);
-
-
-	// retrieve primitive index 
-	
-
-
 	myRegistryId = GSplatRenderer::getInstance().registerUpdate(
 										 dtl,
 										 dp.geo_version, 
@@ -315,8 +281,6 @@ GR_PrimGsplat::update(
 										 myShxs,
 										 myShys,
 										 myShzs);
-
-	std::cout << "GR_PrimGsplat::update - myRegistryId: " << myRegistryId << std::endl;
 }
 
 void
@@ -326,8 +290,6 @@ GR_PrimGsplat::render(
 	GR_RenderFlags	    flags,
 	GR_DrawParms	    dp)
 {
-	//std::cout << "GR_PrimGsplat::render - primHandle: " << myPrimitiveHandle << std::endl;
-	
 	if(!myWireframeGeo)
 	{
 		return;
@@ -343,15 +305,10 @@ GR_PrimGsplat::render(
 		RE_Shader* sh = GsplatShaderManager::getInstance().getShader(GsplatShaderManager::GSPLAT_WIRE_SHADER, r);
 		r->pushShader(sh);
 		myWireframeGeo->draw(r, RE_GEO_WIRE_IDX);
-
-		//TODO: INSTANCED VERSION?
-		//myWireframeGeo->drawInstanced(r, RE_GEO_WIRE_IDX, gSplatCount);
 		r->popShader();
 	}
 
 	GSplatRenderer::getInstance().includeInRenderPass(myRegistryId);
-
-	std::cout << "GR_PrimGsplat::render - myRegistryId: " << myRegistryId << std::endl;
 }
 
 void

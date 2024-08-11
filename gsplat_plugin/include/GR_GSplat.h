@@ -38,8 +38,6 @@ public:
 class GR_PrimGsplat : public GR_Primitive
 {
 private:
-// 	std::string generatePrimID(const GU_Detail *dtl, const GEO_PrimGsplat *prim);
-// 	std::string getPrimID();
 	std::string myRegistryId;
 
 public:
@@ -113,11 +111,8 @@ private:
     int	myID;
 
 	std::string myGsplatStrId;
-
-    //bool myInstancedFlag;
     RE_Geometry *myWireframeGeo;
     GA_Size myGsplatCount;
-    //GT_PrimitiveHandle myPrimitiveHandle;
     UT_Vector3HArray mySplatPts;
     UT_Vector3HArray mySplatColors;
     UT_FloatArray mySplatAlphas; //TODO: make 16 bit like the rest?
