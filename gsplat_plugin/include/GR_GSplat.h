@@ -4,6 +4,7 @@
 #include <GUI/GUI_PrimitiveHook.h>
 #include <GR/GR_Primitive.h>
 
+#include "GEO_GSplat.h"
 
 /// The primitive render hook which creates GR_PrimGsplat objects.
 class GR_PrimGsplatHook : public GUI_PrimitiveHook
@@ -36,6 +37,11 @@ public:
 /// it to be deleted and recreated later.
 class GR_PrimGsplat : public GR_Primitive
 {
+private:
+// 	std::string generatePrimID(const GU_Detail *dtl, const GEO_PrimGsplat *prim);
+// 	std::string getPrimID();
+	std::string myRegistryId;
+
 public:
 	GR_PrimGsplat(const GR_RenderInfo *info,
 				    const char *cache_name,
@@ -105,10 +111,13 @@ private:
 	}
 
     int	myID;
+
+	std::string myGsplatStrId;
+
     //bool myInstancedFlag;
     RE_Geometry *myWireframeGeo;
-    GA_Size gSplatCount;
-    GT_PrimitiveHandle gt_prim;
+    GA_Size myGsplatCount;
+    //GT_PrimitiveHandle myPrimitiveHandle;
     UT_Vector3HArray mySplatPts;
     UT_Vector3HArray mySplatColors;
     UT_FloatArray mySplatAlphas; //TODO: make 16 bit like the rest?

@@ -4,11 +4,12 @@ A HDK/GLSL implementation of Gaussian Splatting
 # MVP To-Do
 
 TIER 1
-- [ ] Clenup hipfile
+- [ ] Blast after output
+- [ ] Texture memory management
+- [ ] Cleanup hipfile
 - [ ] Compatible with GSOPs
 - [ ] ShaderManager improvements, incl. multi render contexts (+cleanup)
 - [ ] Debug modes through detail attribs?
-- [ ] Pointer safety audit
 - [ ] View frustum culling
 - [ ] mega-slowdown past 2.1 mill
 
