@@ -14,11 +14,6 @@
 #include <GA/GA_Iterator.h>
 #include <OP/OP_Node.h>
 
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <string>
-
 
 
 GR_PrimGsplatHook::GR_PrimGsplatHook()
