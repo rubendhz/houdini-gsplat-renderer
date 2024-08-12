@@ -51,24 +51,30 @@ private:
     int myGSplatColorAlphaScaleOrientTexDim;
     std::vector<UT_Vector3F> mySplatPoints;
 
-    //State for sorting
-    std::vector<float> distances;
-    UT_Vector3F myPreviousCameraPos; 
-    float mySortDistanceAccum = 0.0;
-    bool myIsFirstRun;
-    std::vector<float> normalizedValues;
-    std::vector<int> zIndices;
-    std::vector<float> zDistances;
-    std::vector<float> zIndices_f;
+    int mySplatCount;
+    int myAllocatedSplatCount;
 
     bool myIsRenderEnabled;
     bool myIsShDataPresent;
     bool myCanRender;
 
-    bool isRenderStateRegistryCurrent();
+    // Variables to hold camera sorting state
+    UT_Vector3F myPreviousCameraPos; 
+    float mySortDistanceAccum = 0.0;
+    bool myIsFreshGeometry;
+    std::vector<float> myGsplatZDistances;
+    std::vector<int> myGsplatZIndices;
+    std::vector<float> myGsplatZIndices_f;
+    
     unsigned int closestSqrtPowerOf2(const int n);
+
+    bool isRenderStateRegistryCurrent();
     bool checkSignificantDelta(const UT_Vector3F& newPos, const UT_Vector3F& oldPos, const float threshold = 0.0f);
     bool argsortByDistance2(const UT_Vector3F *posSplatPointsData, const UT_Vector3F &ref_pos, const int pointCount);
+
+    void freeTextureResources();
+    void initialiseTextureResources();
+    void allocateTextureResources(RE_RenderContext r);
 
 public:
     // Public method to access the singleton instance
