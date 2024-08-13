@@ -1,32 +1,26 @@
 # houdini-gsplat-renderer
 A HDK/GLSL implementation of Gaussian Splatting
 
-# MVP To-Do
+# To-Do
 
-TIER 1
-- [ ] Blast after output
-- [ ] Texture memory management
-- [ ] Cleanup hipfile
-- [ ] Compatible with GSOPs
-- [ ] ShaderManager improvements, incl. multi render contexts (+cleanup)
+NEW FEATURES:
 - [ ] Debug modes through detail attribs?
-- [ ] View frustum culling
-- [ ] mega-slowdown past 2.1 mill
-
-TIER 2
-- [ ] Picking render mode
-- [ ] Animated attributes
+- [ ] Enable gsplat geo modifications a posteriori
+- [ ] ShaderManager improvements, incl. multi render contexts
 - [ ] Spherical harmonics rotation
-- [ ] Move away from textures in favour of VAOs
-- [ ] Code cleanup
-
-
-# Beyond MVP To-Do
-- [ ] Better orient fix in shader
 - [ ] Integration with other CG
-- [ ] Viewport options exposed in UI
 - [ ] RenderToTexture, and/or ROP/COP nodes? Overlap with other projects! 
+
+PERFORMANCE:
+- [ ] View frustum culling
+- [ ] investigate slowdown past 2.1 mill splats
 - [ ] Sorting via shader compute
+- [ ] Fast time-dependency
+- [ ] Move away from textures in favour of VAOs
+
+IMPROVEMENTS:
+- [ ] Cleanup hipfile
+- [ ] More elegant orient correction fix in shader
 - [ ] VSCode relying on env variables & multi-platform launch configs
 
 

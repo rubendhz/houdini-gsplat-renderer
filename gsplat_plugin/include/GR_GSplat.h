@@ -83,17 +83,30 @@ private:
 
     struct SHHandles {
     	GA_ROHandleV3 sh[16];
+		GA_ROHandleF sh_fallback[45];
+		bool fallback;
+		bool valid;
 	};
 
 	bool initSHHandle(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) {
 		const GA_Attribute *attr = gdp->findPointAttribute(name);
 		if (!attr) {
-			//std::cerr << "SH coefficient attribute '" << name << "' not found!" << std::endl;
 			return false;
 		}
 		handles.sh[index] = GA_ROHandleV3(attr);
 		if (!handles.sh[index].isValid()) {
-			//std::cerr << "Invalid SH handle for '" << name << "'!" << std::endl;
+			return false;
+		}
+		return true;
+	}
+
+	bool initSHHandleFallback(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) {
+		const GA_Attribute *attr = gdp->findPointAttribute(name);
+		if (!attr) {
+			return false;
+		}
+		handles.sh_fallback[index] = GA_ROHandleF(attr);
+		if (!handles.sh_fallback[index].isValid()) {
 			return false;
 		}
 		return true;
@@ -102,10 +115,30 @@ private:
 	bool initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
 		const char* names[] = {"sh1", "sh2", "sh3", "sh4", "sh5", "sh6", "sh7", "sh8", "sh9", 
                                "shA", "shB", "shC", "shD", "shE", "shF"};
+		handles.fallback = false;
+		handles.valid = true;
 		for (int i = 0; i < 15; ++i) {
-			if (!initSHHandle(gdp, handles, names[i], i)) return false;
+			if (!initSHHandle(gdp, handles, names[i], i))
+			{
+				handles.fallback = true;
+				break;
+			}
 		}
-		return true;
+
+		if (handles.fallback)
+		{
+			const char* name_template = "f_rest_%d";
+			char name_i[50];
+			for (int i = 0; i < 45; ++i) {
+				sprintf(name_i, name_template, i);
+				if (!initSHHandleFallback(gdp, handles, name_i, i))
+				{
+					handles.valid = false;
+					break;
+				}
+			}
+		}
+		return handles.valid;
 	}
 
     int	myID;

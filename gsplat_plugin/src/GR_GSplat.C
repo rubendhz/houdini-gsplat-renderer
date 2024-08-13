@@ -85,8 +85,6 @@ GR_PrimGsplat::update(
 	const GT_PrimitiveHandle  &primh,
 	const GR_UpdateParms      &p)
 {
-	std::cout << "GR_PrimGsplat::update - primHandle " << primh << std::endl;
-
 	// Fetch the GEO primitive from the GT primitive handle
     const GEO_PrimGsplat *gSplatPrim = NULL;
     
@@ -117,53 +115,30 @@ GR_PrimGsplat::update(
 	if (!cdAttr) 
 	{
 		std::cerr << "Color attribute 'Cd' not found!" << std::endl;
-		return;
 	}
 	GA_ROHandleV3 colorHandle(cdAttr);
-	if (!colorHandle.isValid()) 
-	{
-		std::cerr << "Invalid color handle!" << std::endl;
-		return;
-	}
 
 	const GA_Attribute *alphaAttr = dtl->findPointAttribute("opacity");
-	if (!alphaAttr) 
+	const GA_Attribute *alphaFallbackAttr = dtl->findPointAttribute("Alpha");
+	if (!alphaAttr && !alphaFallbackAttr) 
 	{
-		std::cerr << "Opacity attribute 'opacity' not found!" << std::endl;
-		return;
+		std::cerr << "Opacity attribute not found (tried 'opacity' and 'Alpha')" << std::endl;
 	}
-	GA_ROHandleF alphaHandle(alphaAttr);
-	if (!alphaHandle.isValid()) 
-	{
-		std::cerr << "Invalid opacity handle!" << std::endl;
-		return;
-	}
+	GA_ROHandleF alphaHandle(alphaAttr ? alphaAttr : alphaFallbackAttr);
 
 	const GA_Attribute *scaleAttr = dtl->findPointAttribute("scale");
 	if (!scaleAttr) 
 	{
 		std::cerr << "Scale attribute 'scale' not found!" << std::endl;
-		return;
 	}
 	GA_ROHandleV3 scaleHandle(scaleAttr);
-	if (!scaleHandle.isValid()) 
-	{
-		std::cerr << "Invalid scale handle!" << std::endl;
-		return;
-	}
 
 	const GA_Attribute *orientAttr = dtl->findPointAttribute("orient");
 	if (!orientAttr) 
 	{
 		std::cerr << "Orientation attribute 'orient' not found!" << std::endl;
-		return;
 	}
 	GA_ROHandleV4 orientHandle(orientAttr);
-	if (!orientHandle.isValid()) 
-	{
-		std::cerr << "Invalid orientation handle!" << std::endl;
-		return;
-	}
 
 	SHHandles shHandles;
 	bool sh_data_found = initAllSHHandles(dtl, shHandles);
@@ -180,14 +155,16 @@ GR_PrimGsplat::update(
 	myShzs.setSize(sh_data_found ? myGsplatCount : 0);
 	
 	tbb::parallel_for(tbb::blocked_range<GA_Size>(0, myGsplatCount),
-		[&](const tbb::blocked_range<GA_Size>& r) {
-			for (GA_Size i = r.begin(); i != r.end(); ++i) {
+		[&](const tbb::blocked_range<GA_Size>& r) 
+		{
+			for (GA_Size i = r.begin(); i != r.end(); ++i) 
+			{
 				const GA_Offset ptoff = gSplatPrim->getVertexOffset(i);
 				const UT_Vector3 pos = dtl->getPos3(ptoff);
-				const UT_Vector3 color = colorHandle.get(ptoff);
-				const float alpha = alphaHandle.get(ptoff);
-				const UT_Vector3 scale = scaleHandle.get(ptoff);
-				const UT_Vector4 orient = orientHandle.get(ptoff);
+				const UT_Vector3 color = colorHandle.isValid() ? colorHandle.get(ptoff) : UT_Vector3(0.0, 0.0, 0.0);
+				const float alpha = alphaHandle.isValid() ? alphaHandle.get(ptoff) : 1.0;
+				const UT_Vector3 scale = scaleHandle.isValid() ? scaleHandle.get(ptoff) : UT_Vector3(1.0, 1.0, 1.0);
+				const UT_Vector4 orient = orientHandle.isValid() ? orientHandle.get(ptoff) : UT_Vector4(0.0, 0.0, 0.0, 1.0);
 
 				mySplatPts[i] = UT_Vector3H(pos);
 				mySplatColors[i] = UT_Vector3H(color);
@@ -200,13 +177,32 @@ GR_PrimGsplat::update(
 					myShxs[i] = UT_Matrix4F(0.0);
 					myShys[i] = UT_Matrix4F(0.0);
 					myShzs[i] = UT_Matrix4F(0.0);
-					for (int j = 0; j < 15; ++j) {
-						UT_Vector3 shValue = shHandles.sh[j].get(ptoff);
-						int row = int(float(j) / 4);  
-						int col = j % 4;
-						myShxs[i](row, col) = shValue.x();
-						myShys[i](row, col) = shValue.y();
-						myShzs[i](row, col) = shValue.z();
+					
+					if (!shHandles.fallback) 
+					{
+						for (int j = 0; j < 15; ++j) 
+						{
+							UT_Vector3 shValue = shHandles.sh[j].get(ptoff);
+							int row = int(float(j) / 4);  
+							int col = j % 4;
+							myShxs[i](row, col) = shValue.x();
+							myShys[i](row, col) = shValue.y();
+							myShzs[i](row, col) = shValue.z();
+						}
+					}
+					else
+					{
+						for (int j = 0; j < 15; ++j) 
+						{
+							float shValue0 = shHandles.sh_fallback[j].get(ptoff);
+							float shValue1 = shHandles.sh_fallback[j+15].get(ptoff);
+							float shValue2 = shHandles.sh_fallback[j+30].get(ptoff);
+							int row = int(float(j) / 4);  
+							int col = j % 4;
+							myShxs[i](row, col) = shValue0;
+							myShys[i](row, col) = shValue1;
+							myShzs[i](row, col) = shValue2;
+						}
 					}
 				}
 			}
