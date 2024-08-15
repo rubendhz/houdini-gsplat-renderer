@@ -136,7 +136,6 @@ GR_PrimGsplat::update(
 	{
 		alphaHandle = GA_ROHandleF(alphaAttr);
 	}
-	//(useAlphaFallback ? alphaFallbackAttr : alphaAttr);
 
 	const GA_Attribute *scaleAttr = dtl->findPointAttribute("scale");
 	if (!scaleAttr) 
