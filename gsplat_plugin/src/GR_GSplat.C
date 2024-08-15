@@ -123,8 +123,20 @@ GR_PrimGsplat::update(
 	if (!alphaAttr && !alphaFallbackAttr) 
 	{
 		std::cerr << "Opacity attribute not found (tried 'opacity' and 'Alpha')" << std::endl;
+	} 
+	// If both are present, use the "fallback". If only one is present, use that.
+	// This is to allow for backwards compatibility with GSOPs Import which provides both "opacity" and "Alpha" 
+	bool useAlphaFallback = (alphaFallbackAttr != nullptr);
+	GA_ROHandleF alphaHandle;
+	if (useAlphaFallback)
+	{
+		alphaHandle = GA_ROHandleF(alphaFallbackAttr);
 	}
-	GA_ROHandleF alphaHandle(alphaAttr ? alphaAttr : alphaFallbackAttr);
+	else
+	{
+		alphaHandle = GA_ROHandleF(alphaAttr);
+	}
+	//(useAlphaFallback ? alphaFallbackAttr : alphaAttr);
 
 	const GA_Attribute *scaleAttr = dtl->findPointAttribute("scale");
 	if (!scaleAttr) 
