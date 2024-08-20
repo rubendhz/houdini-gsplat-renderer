@@ -4,6 +4,9 @@ A HDK/GLSL implementation of Gaussian Splatting
 [![Watch the video](https://i.vimeocdn.com/video/1851733134-68364e97e7700b64d42eb89669d26a56027175614256171f47b983ad7da5fa4f-d?f=webp)](https://vimeo.com/945995885)  
 [Watch the video](https://vimeo.com/945995885)
 
+https://www.sidefx.com/docs/hdk/_h_d_k__intro__creating_plugins.html
+https://www.sidefx.com/docs/hdk/_h_d_k__intro__compiling.html
+
 # To-Do
 
 NEW FEATURES:
