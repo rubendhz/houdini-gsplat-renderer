@@ -107,7 +107,7 @@ public:
 
     void postRender();
 
-    void setRenderingEnabled(bool render_enabled);
+    void setRenderingEnabled(bool isRenderEnabled);
 };
 
 
