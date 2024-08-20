@@ -13,9 +13,10 @@ NEW FEATURES:
 - [ ] Debug modes through detail attribs?
 - [ ] Enable gsplat geo modifications a posteriori
 - [ ] ShaderManager improvements, incl. multi render contexts
-- [ ] Spherical harmonics rotation
+- [ ] Spherical harmonics rotation / Xform SOP
+- [ ] GSplat environment as IBL
 - [ ] Integration with other CG
-- [ ] RenderToTexture, and/or ROP/COP nodes? Overlap with other projects! 
+- [ ] RenderToTexture, and/or ROP/COP nodes? Overlap with other projects!
 
 PERFORMANCE:
 - [ ] View frustum culling
