@@ -17,16 +17,12 @@ public:
         : DM_SceneRenderHook(vport, view_mask) {}
 
     virtual bool render(RE_RenderContext r, const DM_SceneHookData &hook_data) override {
-        
-        //GSplatRenderer::getInstance().purgeUnused();
 
         GSplatRenderer::getInstance().generateRenderGeometry(r);
 
         GSplatRenderer::getInstance().render(r);
 
         GSplatRenderer::getInstance().postRender();
-
-        //GSplatRenderer::getInstance().pprint();
 
         return true;
     }
