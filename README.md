@@ -26,7 +26,7 @@ Without getting bogged down in too many details (you'll probably get more out of
 
 This implementation requires compiling source code. For convenience I am providing pre-compiled binary files for Windows and MacOS. You can find the files under the `compiled` folder in this repository. It should be just a matter of placing the file that matches your platform (Windows/MacOS/Linux) and Houdini version in the appropriate folder path, as described [here](https://www.sidefx.com/docs/hdk/_h_d_k__intro__creating_plugins.html).
 
-Compiling from source yourself is a bit more involved but not too bad. You can read all about it [here](https://www.sidefx.com/docs/hdk/_h_d_k__intro__compiling.html) and define a workflow that works for you. My approach has been to use Houdini's `hcustom` command. Below an example simple bash script that illustrates the steps you might want to script away:
+Compiling from source yourself is a bit more involved but not too bad. You can read all about it [here](https://www.sidefx.com/docs/hdk/_h_d_k__intro__compiling.html) and define a workflow that works for you. My approach has been to use Houdini's `hcustom` command. Below the simplest snippet I could come up with that gets the job done, hopefully useful to get you started setting up a workflow that suits your needs.
 
 ```
 export HOUDINI_VERSION="20.5.278"
