@@ -40,7 +40,7 @@ hcustom -I include -I shaders gsplat_plugin.C
 
 Once the plugin is picked up by Houdini, you should be able use it. In this repository I provide an example hipfile `hip/GSplatPlugin_simpleScene_v001.hipnc` that you can check out to get the idea. I also suggest you setup your viewport in a certain way as shown in the video below:
 
-video of how to set it up
+Click on the image below to see my suggested steps:
 [![Watch the video](https://i.vimeocdn.com/video/1917607128-7eb702c79bfda91c3f2cc8efe005038f15c23b8fee5802ee197f949a5256d280-d?f=webp)](https://vimeo.com/1001396463)  
 [Watch the video](https://vimeo.com/1001396463)
 
