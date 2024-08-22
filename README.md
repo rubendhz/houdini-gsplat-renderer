@@ -52,13 +52,13 @@ Plenty!
 
 I've always taken this project as a playground, and I intend to carry on exploring new ideas and refining things in the near future, there are a number of things I have started playing with and might drop in the near future. Some of these things relate to solving known issues, other are improvements and new features. Below a non-comprehensive list of things on my radar:
 
-Limitations:
+**Limitations:**
 - Expect this to work only on a single viewport
 - No Spherical Harmonics rotation currently
 - No integration of other 3D elements with GSplats
 - Amount of GSplats (~2M on my Mabook Pro M1)
 
-Improvements/New Features:
+**Improvements/New Features:**
 - Performance improvements for time-dependent data
 - Fast time-dependent GSplats
 - Debug and other visualisation modes
