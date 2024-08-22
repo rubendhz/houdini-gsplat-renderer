@@ -69,11 +69,11 @@ Having said that, please note that I can’t currently commit to a roadmap or an
 # Acknowledgements
 I don't think I would have gotten this far without the inspiration from so many amazing open-source projects. I’d like to highlight two in particular; althoughI haven’t directly reached out to the authors, their work has been massively helpful, so I want to give special kudos to them:
 
-https://github.com/aras-p/UnityGaussianSplatting
-https://github.com/antimatter15/splat
+- https://github.com/aras-p/UnityGaussianSplatting
+- https://github.com/antimatter15/splat
 
 
 If you create something cool and share it on social media, I’d love to check it out. Please consider tagging [me](https://www.linkedin.com/in/rubendz/) ;)
 
-Keep splatting!
+**Keep splatting!** 
 
