@@ -8,7 +8,7 @@ A HDK/GLSL implementation of Gaussian Splatting in Houdini
 
 In November 2023, while sitting in the dentist's chair trying to escape to my happy place, it struck me: despite the surge in Gaussian Splatting rasterisers, none had made their way into Houdini's viewport (at least, none that I knew of). At that moment, it seemed criminal, though maybe that was just the anesthesia wearing off and my irritability setting in.
 
-Jokes aside, on my way home, I decided to give it a go. I had never used Houdini's HDK so I saw this as the greatest excuse I could come up with to finally play around with it. I was curious about whether it was possible to implement it decently without having to go deeper than what the HDK allows. However, I was convinced that, if possible, Houdini was going to be a great fit. Fast-forward a few weeks, and my conviction had grown to a point where I don't imagine Houdini in the future without the ability to render this type of data natively. 
+Jokes aside, on my way home, I decided to give it a go. I had never used Houdini's HDK so I saw this as the greatest excuse I could come up with to finally play with it. I was curious about whether it was possible to implement a viewport rasteriser decently without having to go deeper than what the HDK allows. However, I was convinced that, if possible, Houdini was going to be a great fit. Fast-forward a few weeks, and my conviction had grown to a point where I don't imagine Houdini in the future without the ability to render this type of data natively. 
 
 While there's still a lot to refine, I figured now is a good time to share it with the community. I hope you find it interesting! Don't hesitate to reach out, I'm always happy to chat about cool CG stuff.
 
