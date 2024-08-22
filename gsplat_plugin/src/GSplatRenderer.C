@@ -74,23 +74,17 @@ void GSplatRenderer::allocateTextureResources(RE_RenderContext r)
         || newGSplatColorAlphaScaleOrientTexDim != myGSplatColorAlphaScaleOrientTexDim
         || newGSplatShTexDim != myGSplatShTexDim)
     {
-        //freeTextureResources();
-        //initialiseTextureResources();
-
         myGSplatSortedIndexTexDim = newGSplatSortedIndexTexDim;
         myTexSortedIndexNormalised->setResolution(myGSplatSortedIndexTexDim, myGSplatSortedIndexTexDim);
-        //myTexSortedIndexNormalised->setTexture(r, nullptr);
         
         myGSplatColorAlphaScaleOrientTexDim = newGSplatColorAlphaScaleOrientTexDim;
         myTexGsplatColorAlphaScaleOrient->setResolution(myGSplatColorAlphaScaleOrientTexDim, myGSplatColorAlphaScaleOrientTexDim);
-        //myTexGsplatColorAlphaScaleOrient->setTexture(r, nullptr);
         
         myGSplatShTexDim = 0;
         if (myIsShDataPresent)
         {
             myGSplatShTexDim = newGSplatShTexDim;
             myTexGsplatSh->setResolution(myGSplatShTexDim, myGSplatShTexDim);
-            //myTexGsplatSh->setTexture(r, nullptr);
         }
     }
 }
@@ -130,7 +124,7 @@ bool GSplatRenderer::checkSignificantDelta(const UT_Vector3F& newPos, const UT_V
     return false;
 }
 
-bool GSplatRenderer::argsortByDistance2(const UT_Vector3F *posSplatPointsData, const UT_Vector3F &cameraPos, const int pointCount) 
+bool GSplatRenderer::argsortByDistance(const UT_Vector3F *posSplatPointsData, const UT_Vector3F &cameraPos, const int pointCount) 
 {
     bool force = false;
     if (myIsFreshGeometry || myGsplatZDistances.size() != static_cast<size_t>(pointCount)) 
@@ -451,7 +445,7 @@ void GSplatRenderer::render(RE_RenderContext r)
     camera_pos = rowVecMult(camera_pos, view_mat);
 
     int splatCount = mySplatPoints.size();
-    if (argsortByDistance2(mySplatPoints.data(), camera_pos, splatCount))
+    if (argsortByDistance(mySplatPoints.data(), camera_pos, splatCount))
     {
         myGsplatZIndices_f.resize(myGSplatSortedIndexTexDim*myGSplatSortedIndexTexDim);
         myTexSortedIndexNormalised->setTexture(r, myGsplatZIndices_f.data());
