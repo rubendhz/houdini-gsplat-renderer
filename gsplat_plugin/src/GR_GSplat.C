@@ -273,7 +273,6 @@ GR_PrimGsplat::update(
 										 dtl,
 										 dp.geo_version, 
 										 gSplatPrim->getVertexOffset(0),
-
 										 myGsplatCount, 
 										 mySplatPts, 
 										 mySplatColors, 
