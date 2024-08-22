@@ -1,8 +1,8 @@
 # Houdini Gaussian Splatting Viewport Renderer
-A HDK/GLSL implementation of Gaussian Splatting in Houdini
+**A HDK/GLSL implementation of Gaussian Splatting in Houdini**
 
 [![Watch the video](https://i.vimeocdn.com/video/1851733134-68364e97e7700b64d42eb89669d26a56027175614256171f47b983ad7da5fa4f-d?f=webp)](https://vimeo.com/945995885)  
-[Watch the video](https://vimeo.com/945995885)
+[**Watch an early sneak peek**](https://vimeo.com/945995885)
 
 # Context
 
@@ -42,7 +42,7 @@ Once the plugin is picked up by Houdini when it boots up, you should be able use
 
 Click on the image below to see my suggested steps:
 [![Watch the video](https://i.vimeocdn.com/video/1917607128-7eb702c79bfda91c3f2cc8efe005038f15c23b8fee5802ee197f949a5256d280-d?f=webp)](https://vimeo.com/1001396463)  
-[Link to the video](https://vimeo.com/1001396463)
+[**Link to the video**](https://vimeo.com/1001396463)
 
 Please, don't think about the `GSplatSOP` as "the renderer". All that the SOP does is to create the custom primitive types from the incoming points based on their attributes. From that point on, provided the GSplat primitives exist in a Houdini Geometry that is being displayed (whether they come from one or multiple GSplatSOPs), a global "renderer" takes care of them.
 
