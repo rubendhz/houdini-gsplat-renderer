@@ -38,11 +38,11 @@ hcustom -I include -I shaders gsplat_plugin.C
 
 # How to use
 
-Once the plugin is picked up by Houdini, you should be able use it. In this repository I provide an example hipfile `hip/GSplatPlugin_simpleScene_v001.hipnc` that you can check out to get the idea. I also suggest you setup your viewport in a certain way as shown in the video below:
+Once the plugin is picked up by Houdini when it boots up, you should be able use it. In this repository I provide an example hipfile `hip/GSplatPlugin_simpleScene_v001.hipnc` that you can check out to get the idea. I also suggest you setup your viewport in a certain way as shown in the video below:
 
 Click on the image below to see my suggested steps:
 [![Watch the video](https://i.vimeocdn.com/video/1917607128-7eb702c79bfda91c3f2cc8efe005038f15c23b8fee5802ee197f949a5256d280-d?f=webp)](https://vimeo.com/1001396463)  
-[Watch the video](https://vimeo.com/1001396463)
+[Link to the video](https://vimeo.com/1001396463)
 
 Please, don't think about the `GSplatSOP` as "the renderer". All that the SOP does is to create the custom primitive types from the incoming points based on their attributes. From that point on, provided the GSplat primitives exist in a Houdini Geometry that is being displayed (whether they come from one or multiple GSplatSOPs), a global "renderer" takes care of them.
 
