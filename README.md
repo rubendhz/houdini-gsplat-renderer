@@ -64,16 +64,16 @@ Improvements/New Features:
 - Debug and other visualisation modes
 - GSplats as IBLs
 
-Having said that, please note that I can't currently commit to a roadmap or anything of the like. 
+Having said that, please note that I can’t currently commit to a roadmap or anything of the sort.
 
 # Acknowledgements
-I don't think I would have gotten to where I got to without so many open-source projects to draw inspiration from. I would like to highlight these two, since although I have not directly reached out to the authors, they have been massively helpful so I wanted to give special kudos to them.
+I don't think I would have gotten this far without the inspiration from so many amazing open-source projects. I’d like to highlight two in particular; althoughI haven’t directly reached out to the authors, their work has been massively helpful, so I want to give special kudos to them:
 
 https://github.com/aras-p/UnityGaussianSplatting
 https://github.com/antimatter15/splat
 
 
-If you make something cool and share it on social media, I'd love to check it out, please consider tagging [me](https://www.linkedin.com/in/rubendz/) :)
+If you create something cool and share it on social media, I’d love to check it out. Please consider tagging [me](https://www.linkedin.com/in/rubendz/) ;)
 
 Keep splatting!
 
