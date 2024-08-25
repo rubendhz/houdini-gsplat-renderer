@@ -70,7 +70,7 @@ private:
 
     bool isRenderStateRegistryCurrent();
     bool checkSignificantDelta(const UT_Vector3F& newPos, const UT_Vector3F& oldPos, const float threshold = 0.0f);
-    bool argsortByDistance2(const UT_Vector3F *posSplatPointsData, const UT_Vector3F &ref_pos, const int pointCount);
+    bool argsortByDistance(const UT_Vector3F *posSplatPointsData, const UT_Vector3F &ref_pos, const int pointCount);
 
     void freeTextureResources();
     void initialiseTextureResources();
