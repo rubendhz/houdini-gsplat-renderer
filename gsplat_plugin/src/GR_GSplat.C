@@ -165,15 +165,13 @@ GR_PrimGsplat::update(
 	myShys.setSize(sh_data_found ? myGsplatCount : 0);
 	myShzs.setSize(sh_data_found ? myGsplatCount : 0);
 	
-	//UT_Vector3 gSplatPrimOrigin = gSplatPrim->baryCenter();
-
 	tbb::parallel_for(tbb::blocked_range<GA_Size>(0, myGsplatCount),
 		[&](const tbb::blocked_range<GA_Size>& r) 
 		{
 			for (GA_Size i = r.begin(); i != r.end(); ++i) 
 			{
 				const GA_Offset ptoff = gSplatPrim->getVertexOffset(i);
-				const UT_Vector3 pos = dtl->getPos3(ptoff);// - gSplatPrimOrigin;
+				const UT_Vector3 pos = dtl->getPos3(ptoff);
 				const UT_Vector3 color = colorHandle.isValid() ? colorHandle.get(ptoff) : UT_Vector3(0.0, 0.0, 0.0);
 				const float alpha = alphaHandle.isValid() ? alphaHandle.get(ptoff) : 1.0;
 				const UT_Vector3 scale = scaleHandle.isValid() ? scaleHandle.get(ptoff) : UT_Vector3(1.0, 1.0, 1.0);
