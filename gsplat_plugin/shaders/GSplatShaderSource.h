@@ -127,6 +127,7 @@ const char* const _GSplatMainVertexShader = R"glsl(
     uniform int gSplatColorAlphaScaleOrientTexDim;
     uniform sampler2D gSplatColorAlphaScaleOrientTexSampler;
     uniform int gSplatShEnabled;
+    uniform vec3 gSplatOrigin;
 
     out parms
     {
@@ -198,6 +199,7 @@ const char* const _GSplatMainVertexShader = R"glsl(
 
         get_uv(gSplatIdxNorm, gSplatColorAlphaScaleOrientTexDim, gSplatCount, 4, uv, uv_inc);
         vec3 P = texture(gSplatColorAlphaScaleOrientTexSampler, uv).rgb;
+        P += gSplatOrigin;
         
         vec3 centerWorldPos = (glH_ObjViewMatrix * vec4(P, 1.0)).xyz;
         vec4 centerClipPos = ((glH_ProjectMatrix*mat4(1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1)) * vec4(centerWorldPos, 1));

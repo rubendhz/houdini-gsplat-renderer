@@ -19,10 +19,11 @@ private:
         RE_CacheVersion gversion;
         GA_Offset gvtx;
         GA_Size splatCount = 0;
+        UT_Vector3 splatOrigin;
         bool active = false;
         int age = -1;
         int ageSinceLastActive = -1;
-        UT_Vector3HArray* splatPts = NULL;
+        UT_Vector3Array* splatPts = NULL;
         UT_Vector3HArray* splatColors = NULL;
         UT_FloatArray* splatAlphas = NULL;
         UT_Vector3HArray* splatScales = NULL;
@@ -50,6 +51,7 @@ private:
     RE_Texture *myTexGsplatColorAlphaScaleOrient;
     int myGSplatColorAlphaScaleOrientTexDim;
     std::vector<UT_Vector3F> mySplatPoints;
+    UT_Vector3 mySplatOrigin;
 
     int mySplatCount;
     int myAllocatedSplatCount;
@@ -87,8 +89,9 @@ public:
         const GU_Detail *gdp,
         const RE_CacheVersion &gversion, 
         const GA_Offset &gVtxOffset,
-        const GA_Size &splatCount, 
-        const UT_Vector3HArray& splatPts, 
+        const GA_Size &splatCount,
+        const UT_Vector3 &splatOrigin,
+        const UT_Vector3Array& splatPts, 
         const UT_Vector3HArray& splatColors,
         const UT_FloatArray& splatAlphas,
         const UT_Vector3HArray& splatScales,

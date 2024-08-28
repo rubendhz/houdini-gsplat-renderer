@@ -165,19 +165,21 @@ GR_PrimGsplat::update(
 	myShys.setSize(sh_data_found ? myGsplatCount : 0);
 	myShzs.setSize(sh_data_found ? myGsplatCount : 0);
 	
+	//UT_Vector3 gSplatPrimOrigin = gSplatPrim->baryCenter();
+
 	tbb::parallel_for(tbb::blocked_range<GA_Size>(0, myGsplatCount),
 		[&](const tbb::blocked_range<GA_Size>& r) 
 		{
 			for (GA_Size i = r.begin(); i != r.end(); ++i) 
 			{
 				const GA_Offset ptoff = gSplatPrim->getVertexOffset(i);
-				const UT_Vector3 pos = dtl->getPos3(ptoff);
+				const UT_Vector3 pos = dtl->getPos3(ptoff);// - gSplatPrimOrigin;
 				const UT_Vector3 color = colorHandle.isValid() ? colorHandle.get(ptoff) : UT_Vector3(0.0, 0.0, 0.0);
 				const float alpha = alphaHandle.isValid() ? alphaHandle.get(ptoff) : 1.0;
 				const UT_Vector3 scale = scaleHandle.isValid() ? scaleHandle.get(ptoff) : UT_Vector3(1.0, 1.0, 1.0);
 				const UT_Vector4 orient = orientHandle.isValid() ? orientHandle.get(ptoff) : UT_Vector4(0.0, 0.0, 0.0, 1.0);
 
-				mySplatPts[i] = UT_Vector3H(pos);
+				mySplatPts[i] = pos;
 				mySplatColors[i] = UT_Vector3H(color);
 				mySplatAlphas[i] = alpha;
 				mySplatScales[i] = UT_Vector3H(scale);
@@ -224,14 +226,14 @@ GR_PrimGsplat::update(
 
 	const int verticesPerQuad_wireframe = 8;
 	myWireframeGeo->setNumPoints(myGsplatCount * verticesPerQuad_wireframe);
-	RE_VertexArray *posWire = myWireframeGeo->findCachedAttrib(r, posname, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
+	RE_VertexArray *posWire = myWireframeGeo->findCachedAttrib(r, posname, RE_GPU_FLOAT32, 3, RE_ARRAY_POINT, true);
 	RE_VertexArray *colorWire = myWireframeGeo->findCachedAttrib(r, colorname, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
     RE_VertexArray *orientWire = myWireframeGeo->findCachedAttrib(r, orientname, RE_GPU_FLOAT16, 4, RE_ARRAY_POINT, true);
 	RE_VertexArray *scaleWire = myWireframeGeo->findCachedAttrib(r, scalename, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
 
 	if(posWire->getCacheVersion() != dp.geo_version)
     {
-		UT_Vector3H *pdata = static_cast<UT_Vector3H *>(posWire->map(r));
+		UT_Vector3 *pdata = static_cast<UT_Vector3 *>(posWire->map(r));
 		UT_Vector3H *colordata = static_cast<UT_Vector3H *>(colorWire->map(r));
 		UT_Vector4H *orientdata = static_cast<UT_Vector4H *>(orientWire->map(r));
 		UT_Vector3H *scaledata = static_cast<UT_Vector3H *>(scaleWire->map(r));
@@ -273,7 +275,8 @@ GR_PrimGsplat::update(
 										 dtl,
 										 dp.geo_version, 
 										 gSplatPrim->getVertexOffset(0),
-										 myGsplatCount, 
+										 myGsplatCount,
+										 gSplatPrim->baryCenter(),
 										 mySplatPts, 
 										 mySplatColors, 
 										 mySplatAlphas,

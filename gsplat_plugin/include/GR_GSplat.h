@@ -146,7 +146,7 @@ private:
 	std::string myGsplatStrId;
     RE_Geometry *myWireframeGeo;
     GA_Size myGsplatCount;
-    UT_Vector3HArray mySplatPts;
+    UT_Vector3Array mySplatPts;
     UT_Vector3HArray mySplatColors;
     UT_FloatArray mySplatAlphas; //TODO: make 16 bit like the rest?
     UT_Vector3HArray mySplatScales;
