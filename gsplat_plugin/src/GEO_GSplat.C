@@ -459,10 +459,10 @@ GEO_PrimGsplat::registerMyself(GA_PrimitiveFactory *factory)
 	return;
 
     theDefinition = factory->registerDefinition(
-        "Gsplat",
+        "GSplat",
         geoNewPrimGsplatBlock,
         GA_FAMILY_NONE,
-        "Gsplat");
+        "GSplat");
 
     // NOTE: Calling setHasLocalTransform(false) is redundant,
     //       but if your custom primitive has a local transform,

@@ -17,7 +17,7 @@
 
 
 GR_PrimGsplatHook::GR_PrimGsplatHook()
-    : GUI_PrimitiveHook("Gsplat")
+    : GUI_PrimitiveHook("GSplat")
 {
 }
 
