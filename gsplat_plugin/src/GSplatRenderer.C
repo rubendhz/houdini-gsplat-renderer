@@ -27,6 +27,8 @@ GSplatRenderer::GSplatRenderer()
 
     mySplatCount = 0;
     myAllocatedSplatCount = 0;
+
+    mySplatOrigin = UT_Vector3(0, 0, 0);
 }
 
 void GSplatRenderer::freeTextureResources()
@@ -182,9 +184,9 @@ std::string GSplatRenderer::registerUpdate(
     const GU_Detail *gdp,
     const RE_CacheVersion &gversion, 
     const GA_Offset &gvtx,
-    
     const GA_Size &splatCount, 
-    const UT_Vector3HArray& splatPts, 
+    const UT_Vector3 &splatOrigin,
+    const UT_Vector3Array& splatPts, 
     const UT_Vector3HArray& splatColors,
     const UT_FloatArray& splatAlphas,
     const UT_Vector3HArray& splatScales,
@@ -235,7 +237,8 @@ std::string GSplatRenderer::registerUpdate(
     myRenderStateRegistry[registryId]->gversion = gversion;
     myRenderStateRegistry[registryId]->gdp = const_cast<GU_Detail*>(gdp);
     myRenderStateRegistry[registryId]->gvtx = gvtx;
-    myRenderStateRegistry[registryId]->splatPts = const_cast<UT_Vector3HArray*>(&splatPts);
+    myRenderStateRegistry[registryId]->splatOrigin = splatOrigin;
+    myRenderStateRegistry[registryId]->splatPts = const_cast<UT_Vector3Array*>(&splatPts);
     myRenderStateRegistry[registryId]->splatColors = const_cast<UT_Vector3HArray*>(&splatColors);
     myRenderStateRegistry[registryId]->splatAlphas = const_cast<UT_FloatArray*>(&splatAlphas);
     myRenderStateRegistry[registryId]->splatScales = const_cast<UT_Vector3HArray*>(&splatScales);
@@ -338,6 +341,23 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
     std::vector<fpreal16> sh_data;
     sh_data.resize(myIsShDataPresent ? myGSplatShTexDim * myGSplatShTexDim * 3 : 0);
 
+    mySplatOrigin = UT_Vector3(0, 0, 0);
+    int splatClusters = 0;
+    for (UT_Set<std::string>::const_iterator it0 = myActiveRegistries.begin(); it0 != myActiveRegistries.end(); ++it0)
+    {
+        UT_Map<std::string, std::unique_ptr<GSplatRegisterEntry>>::iterator it = myRenderStateRegistry.find(*it0);
+        const GSplatRegisterEntry* entry = myRenderStateRegistry[it->first].get();
+        if (entry)
+        {
+            mySplatOrigin += entry->splatOrigin;
+            ++splatClusters;
+        }
+    }
+    if (splatClusters > 0)
+    {
+        mySplatOrigin /= splatClusters;
+    }
+
     int offset = 0;
     for (UT_Set<std::string>::const_iterator it0 = myActiveRegistries.begin(); it0 != myActiveRegistries.end(); ++it0)
     {
@@ -347,7 +367,7 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
         const GSplatRegisterEntry* entry = myRenderStateRegistry[primHandle].get();
         if (entry)
         {
-            const UT_Vector3HArray& splatPts = *entry->splatPts;
+            const UT_Vector3Array& splatPts = *entry->splatPts;
             const UT_Vector3HArray& splatColors = *entry->splatColors;
             const UT_FloatArray& splatAlphas = *entry->splatAlphas;
             const UT_Vector3HArray& splatScales = *entry->splatScales;
@@ -370,9 +390,9 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
                     int offset_colorAlphaScaleOrient = offset_inner * 4 * 4; // Calculate the starting index for this point's data
 
                     // Position and RGBA data processing
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient]     = splatPts(ii).x();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 1] = splatPts(ii).y();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 2] = splatPts(ii).z();
+                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient]     = splatPts(ii).x() - mySplatOrigin.x();
+                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 1] = splatPts(ii).y() - mySplatOrigin.y();
+                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 2] = splatPts(ii).z() - mySplatOrigin.z();
                     colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 3] = 0; // Padded zero
                     
                     colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 4]   = splatColors(ii).x();
@@ -475,6 +495,8 @@ void GSplatRenderer::render(RE_RenderContext r)
 
     theGSShader->bindInt(r, "gSplatCount", splatCount);
     theGSShader->bindInt(r, "gSplatVertexCount", 6);
+
+    theGSShader->bindVector(r, "gSplatOrigin", mySplatOrigin);
     
     theGSShader->bindInt(r, "gSplatZOrderTexDim", myGSplatSortedIndexTexDim);
     r->bindTexture(myTexSortedIndexNormalised, theGSShader->getUniformTextureUnit("gSplatZOrderTexSampler"));

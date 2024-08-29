@@ -177,7 +177,7 @@ GR_PrimGsplat::update(
 				const UT_Vector3 scale = scaleHandle.isValid() ? scaleHandle.get(ptoff) : UT_Vector3(1.0, 1.0, 1.0);
 				const UT_Vector4 orient = orientHandle.isValid() ? orientHandle.get(ptoff) : UT_Vector4(0.0, 0.0, 0.0, 1.0);
 
-				mySplatPts[i] = UT_Vector3H(pos);
+				mySplatPts[i] = pos;
 				mySplatColors[i] = UT_Vector3H(color);
 				mySplatAlphas[i] = alpha;
 				mySplatScales[i] = UT_Vector3H(scale);
@@ -224,14 +224,14 @@ GR_PrimGsplat::update(
 
 	const int verticesPerQuad_wireframe = 8;
 	myWireframeGeo->setNumPoints(myGsplatCount * verticesPerQuad_wireframe);
-	RE_VertexArray *posWire = myWireframeGeo->findCachedAttrib(r, posname, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
+	RE_VertexArray *posWire = myWireframeGeo->findCachedAttrib(r, posname, RE_GPU_FLOAT32, 3, RE_ARRAY_POINT, true);
 	RE_VertexArray *colorWire = myWireframeGeo->findCachedAttrib(r, colorname, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
     RE_VertexArray *orientWire = myWireframeGeo->findCachedAttrib(r, orientname, RE_GPU_FLOAT16, 4, RE_ARRAY_POINT, true);
 	RE_VertexArray *scaleWire = myWireframeGeo->findCachedAttrib(r, scalename, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
 
 	if(posWire->getCacheVersion() != dp.geo_version)
     {
-		UT_Vector3H *pdata = static_cast<UT_Vector3H *>(posWire->map(r));
+		UT_Vector3 *pdata = static_cast<UT_Vector3 *>(posWire->map(r));
 		UT_Vector3H *colordata = static_cast<UT_Vector3H *>(colorWire->map(r));
 		UT_Vector4H *orientdata = static_cast<UT_Vector4H *>(orientWire->map(r));
 		UT_Vector3H *scaledata = static_cast<UT_Vector3H *>(scaleWire->map(r));
@@ -273,7 +273,8 @@ GR_PrimGsplat::update(
 										 dtl,
 										 dp.geo_version, 
 										 gSplatPrim->getVertexOffset(0),
-										 myGsplatCount, 
+										 myGsplatCount,
+										 gSplatPrim->baryCenter(),
 										 mySplatPts, 
 										 mySplatColors, 
 										 mySplatAlphas,
