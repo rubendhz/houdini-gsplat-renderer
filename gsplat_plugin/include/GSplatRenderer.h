@@ -1,6 +1,15 @@
+/***************************************************************************************/
+/*  Filename: GSsplatRenderer.h                                                        */
+/*  Description: Header for main renderer class of the GSplat Plugin                   */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
 #ifndef __GSPLAT_RENDERER__
 #define __GSPLAT_RENDERER__
-
 
 #include <SYS/SYS_Types.h>
 #include <UT/UT_Vector3.h>
@@ -10,7 +19,6 @@
 #include <GT/GT_GEOPrimitive.h>
 #include <RE/RE_RenderContext.h>
 #include "UT_GSplatVectorTypes.h"
-
 
 class GSplatRenderer {
 private:
@@ -59,6 +67,8 @@ private:
     bool myIsRenderEnabled;
     bool myIsShDataPresent;
     bool myCanRender;
+
+    bool myDidPrintVersion;
 
     // Variables to hold camera sorting state
     UT_Vector3F myPreviousCameraPos; 
@@ -111,6 +121,8 @@ public:
     void postRender();
 
     void setRenderingEnabled(bool isRenderEnabled);
+
+    void printRendererVersionOnce();
 };
 
 

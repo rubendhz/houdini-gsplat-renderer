@@ -1,3 +1,14 @@
+/***************************************************************************************/
+/*  Filename: GR_GSplat.C                                                              */
+/*  Description: Custom Rendering class for GSplat primitives                          */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
+
 #include "GR_GSplat.h"
 
 #include "GSplatRenderer.h"
@@ -17,7 +28,7 @@
 
 
 GR_PrimGsplatHook::GR_PrimGsplatHook()
-    : GUI_PrimitiveHook("Gsplat")
+    : GUI_PrimitiveHook("GSplat")
 {
 }
 

@@ -1,4 +1,16 @@
-#include "GSplatRenderer.h" 
+/***************************************************************************************/
+/*  Filename: GSsplatRenderer.C                                                        */
+/*  Description: Main renderer class of the GSplat Plugin                              */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
+
+#include "GSplatRendererVersion.h"
+#include "GSplatRenderer.h"
 #include "GR_GSplat.h"
 
 #include <UT/UT_Set.h>
@@ -29,6 +41,8 @@ GSplatRenderer::GSplatRenderer()
     myAllocatedSplatCount = 0;
 
     mySplatOrigin = UT_Vector3(0, 0, 0);
+
+    myDidPrintVersion = false;
 }
 
 void GSplatRenderer::freeTextureResources()
@@ -195,6 +209,7 @@ std::string GSplatRenderer::registerUpdate(
     const MyUT_Matrix4HArray& splatShys,
     const MyUT_Matrix4HArray& splatShzs) 
 {
+    printRendererVersionOnce();
 
     // if there are entries in the registry for this gdp, 
     // gversion will be different from the cache version of the entry
@@ -547,4 +562,13 @@ void GSplatRenderer::postRender()
 void GSplatRenderer::setRenderingEnabled(bool isRenderEnabled) 
 {
     myIsRenderEnabled = isRenderEnabled;
+}
+
+void GSplatRenderer::printRendererVersionOnce() 
+{
+    if (!myDidPrintVersion) 
+    {
+        myDidPrintVersion = true;
+        std::cout << "GSplatRenderer version: " << GSPLAT_RENDERER_VERSION << std::endl;
+    }
 }

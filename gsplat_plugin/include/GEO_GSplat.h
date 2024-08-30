@@ -1,3 +1,14 @@
+/***************************************************************************************/
+/*  Filename: GEO_GSplat.h                                                             */
+/*  Description: Custom GSplat Primitive definition                                    */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
+
 #ifndef __GEO_PrimGsplat__
 #define __GEO_PrimGsplat__
 

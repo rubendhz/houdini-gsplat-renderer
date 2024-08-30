@@ -1,3 +1,14 @@
+/***************************************************************************************/
+/*  Filename: GSplatShaderManger.C                                                     */
+/*  Description: Basic Shader Manager for GSplat Plugin                                */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
+
 #include "GSplatShaderManager.h"
 #include "GSplatShaderSource.h"
 

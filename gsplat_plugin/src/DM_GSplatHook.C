@@ -1,3 +1,14 @@
+/***************************************************************************************/
+/*  Filename: DM_GSplatHook.C                                                          */
+/*  Description: Custom Render hook class for GSplat rendering                         */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
+
 #ifndef __DM_GSPLAT_HOOK__
 #define __DM_GSPLAT_HOOK__
 

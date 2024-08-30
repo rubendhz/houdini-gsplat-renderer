@@ -1,3 +1,14 @@
+/***************************************************************************************/
+/*  Filename: GR_GSplat.h                                                              */
+/*  Description: Custom Rendering class for GSplat primitives                          */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
+
 #ifndef __GR_GSPLAT__
 #define __GR_GSPLAT__
 
