@@ -494,15 +494,17 @@ void GSplatRenderer::render(RE_RenderContext r)
     RE_Shader* theGSShader = GsplatShaderManager::getInstance().getShader(GsplatShaderManager::GSPLAT_MAIN_SHADER, r);
     r->pushShader(theGSShader);
 
-    bool wasLightingEnabled = false;
-    if (r.isGL()) {
-        RE_Render* r_ogl = *r;
-        if (r_ogl) {
-            wasLightingEnabled = glIsEnabled(GL_LIGHTING);
-            glDisable(GL_LIGHTING);
-        }
-    }
-    //else if (r.isVulkan()) {
+    // TMP/DEBUGGING:
+    // bool wasLightingEnabled = false;
+    // if (r.isGL()) {
+    //     RE_Render* r_ogl = *r;
+    //     if (r_ogl) {
+    //         wasLightingEnabled = glIsEnabled(GL_LIGHTING);
+    //         glDisable(GL_LIGHTING);
+    //     }
+    // }
+    // else if (r.isVulkan()) {
+    // }
 
     // Keep depth buffer check enabled but don't write to it (1)
     r->pushDepthState();
@@ -549,11 +551,14 @@ void GSplatRenderer::render(RE_RenderContext r)
     r->popBlendState();
     r->popDepthState();
     
+    // TMP/DEBUGGING:
     // Re-enable lighting if it was enabled before
-    if (r.isGL() && wasLightingEnabled)
-    {
-        glEnable(GL_LIGHTING);
-    }
+    // if (r.isGL() && wasLightingEnabled)
+    // {
+    //     glEnable(GL_LIGHTING);
+    // }
+    // else if (r.isVulkan()) {
+    // }
 
     r->popShader();
 }
