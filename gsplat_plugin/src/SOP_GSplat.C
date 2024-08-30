@@ -36,8 +36,10 @@
 void
 newSopOperator(OP_OperatorTable *table)
 {
-    table->addOperator(new OP_Operator(
-        "GSplatSOP",                // Internal name
+    OP_Operator *sop;
+
+    sop = new OP_Operator(
+        "GSplatSource",             // Internal name
         "GSplat Source",            // UI name
         SOP_Gsplat::myConstructor,  // How to build the SOP
         SOP_Gsplat::myTemplateList, // My parameters
@@ -46,8 +48,12 @@ newSopOperator(OP_OperatorTable *table)
         nullptr,                    // Local variables  
         0,                          // Flags it's not as generator (i.e. OP_FLAG_GENERATOR)  
         nullptr,                    // Input labels
-        0                           // Max outputs
-        ));                          
+        0,                          // Max outputs
+        "Gaussian Splats"           // Tab menu
+        );
+    sop->setIconName("SOP_clusterpoints"); // something that vaguely looks like GSplats :P
+
+    table->addOperator(sop);                          
 }
 
 
