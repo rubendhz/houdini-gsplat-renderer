@@ -61,7 +61,7 @@ I've always taken this project as a playground, and I intend to keep exploring n
 **Improvements/New Features:**
 - Performance improvements for time-dependent data
 - Debug and other visualisation modes
-- GSplats as IBLs
+- GSplats for IBL lighting
 
 Having said that, please note that I can’t currently commit to a roadmap or anything of the sort.
 
