@@ -11,6 +11,7 @@
 
 #include "SOP_GSplat.h"
 #include "GEO_GSplat.h"
+#include "GSplatPluginVersion.h"
 
 #include <GU/GU_Detail.h>
 #include <OP/OP_Operator.h>
@@ -37,7 +38,7 @@ newSopOperator(OP_OperatorTable *table)
 {
     table->addOperator(new OP_Operator(
         "GSplatSOP",                // Internal name
-        "GSplatSOP",                // UI name
+        "GSplat Source",            // UI name
         SOP_Gsplat::myConstructor,  // How to build the SOP
         SOP_Gsplat::myTemplateList, // My parameters
         1,                          // Min # of sources
@@ -49,9 +50,13 @@ newSopOperator(OP_OperatorTable *table)
         ));                          
 }
 
+
+static PRM_Name version_label("label", "GSplat Plugin v" GSPLAT_PLUGIN_VERSION);
+
 PRM_Template
 SOP_Gsplat::myTemplateList[] = {
-    PRM_Template()
+    PRM_Template(PRM_LABEL, 1, &version_label, nullptr),
+    PRM_Template() // End of template list marker
 };
 
 
