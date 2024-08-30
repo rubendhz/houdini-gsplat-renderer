@@ -68,8 +68,6 @@ private:
     bool myIsShDataPresent;
     bool myCanRender;
 
-    bool myDidPrintVersion;
-
     // Variables to hold camera sorting state
     UT_Vector3F myPreviousCameraPos; 
     float mySortDistanceAccum = 0.0;
