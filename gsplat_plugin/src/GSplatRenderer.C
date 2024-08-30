@@ -17,10 +17,14 @@
 #include <UT/UT_UniquePtr.h>
 #include <RE/RE_ShaderHandle.h>
 #include <RE/RE_OGLBuffer.h>
+
 #include <execution> 
 #include <numeric>
 #include <algorithm>
 
+#ifndef GL_LIGHTING
+#define GL_LIGHTING 0x0B50
+#endif
 
 GSplatRenderer::GSplatRenderer()
 {
@@ -490,6 +494,16 @@ void GSplatRenderer::render(RE_RenderContext r)
     RE_Shader* theGSShader = GsplatShaderManager::getInstance().getShader(GsplatShaderManager::GSPLAT_MAIN_SHADER, r);
     r->pushShader(theGSShader);
 
+    bool wasLightingEnabled = false;
+    if (r.isGL()) {
+        RE_Render* r_ogl = *r;
+        if (r_ogl) {
+            wasLightingEnabled = glIsEnabled(GL_LIGHTING);
+            glDisable(GL_LIGHTING);
+        }
+    }
+    //else if (r.isVulkan()) {
+
     // Keep depth buffer check enabled but don't write to it (1)
     r->pushDepthState();
     //r->enableDepthTest();
@@ -535,6 +549,11 @@ void GSplatRenderer::render(RE_RenderContext r)
     r->popBlendState();
     r->popDepthState();
     
+    // Re-enable lighting if it was enabled before
+    if (r.isGL() && wasLightingEnabled)
+    {
+        glEnable(GL_LIGHTING);
+    }
 
     r->popShader();
 }

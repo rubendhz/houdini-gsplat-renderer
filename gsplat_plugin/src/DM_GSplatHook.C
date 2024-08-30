@@ -67,7 +67,7 @@ void newRenderHook(DM_RenderTable* table)
 {
     // Create and register the scene hook that will create render hooks as needed
     table->registerSceneHook(new MyCustomSceneHook("GSplat_RenderSceneHook", INT_MAX),
-                             DM_HOOK_BEAUTY, DM_HOOK_AFTER_NATIVE);
+                             DM_HOOK_UNLIT, DM_HOOK_AFTER_NATIVE);
 
     // TODO: should it be DM_HOOK_BEAUTY_TRANSPARENT instead of DM_HOOK_BEAUTY?
 }
