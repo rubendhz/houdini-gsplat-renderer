@@ -1,3 +1,14 @@
+/***************************************************************************************/
+/*  Filename: GEO_GSplat.h                                                             */
+/*  Description: Custom GSplat Primitive definition                                    */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
+
 #include "GEO_GSplat.h"
 #include "GR_GSplat.h"
 
@@ -459,10 +470,10 @@ GEO_PrimGsplat::registerMyself(GA_PrimitiveFactory *factory)
 	return;
 
     theDefinition = factory->registerDefinition(
-        "Gsplat",
+        "GSplat",
         geoNewPrimGsplatBlock,
         GA_FAMILY_NONE,
-        "Gsplat");
+        "GSplat");
 
     // NOTE: Calling setHasLocalTransform(false) is redundant,
     //       but if your custom primitive has a local transform,

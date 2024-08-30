@@ -1,3 +1,14 @@
+/***************************************************************************************/
+/*  Filename: SOP_GSplat.h                                                             */
+/*  Description: Surface Operator to create GSplat primitives                          */
+/*                                                                                     */
+/*  Copyright (C) 2024 Ruben Diaz                                                      */
+/*                                                                                     */
+/*  License: AGPL-3.0-or-later                                                         */
+/*           https://github.com/rubendhz/houdini-gsplat-renderer/blob/develop/LICENSE  */
+/***************************************************************************************/
+
+
 #ifndef __SOP_GSPLAT__
 #define __SOP_GSPLAT__
 
