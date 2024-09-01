@@ -56,7 +56,6 @@ I've always taken this project as a playground, and I intend to keep exploring n
 - Expect this to work only on a single viewport
 - No Spherical Harmonics rotation currently
 - Other 3D elements don't render "in-place" with GSplats
-- Amount of GSplats (~2M on my Mabook Pro M1)
 
 **Improvements/New Features:**
 - Performance improvements for time-dependent data
