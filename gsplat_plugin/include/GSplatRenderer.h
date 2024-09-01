@@ -66,7 +66,6 @@ private:
     UT_Vector3 mySplatOrigin;
 
     int myGSplatCount;
-    int myAllocatedSplatCount;
 
     bool myIsRenderEnabled;
     bool myIsShDataPresent;

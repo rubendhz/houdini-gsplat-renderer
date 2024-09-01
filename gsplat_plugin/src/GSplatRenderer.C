@@ -511,8 +511,6 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
         setTextureFilteringCommon(r, myTexGsplatShDeg3);
         myTexGsplatShDeg3->setTexture(r, shDeg3_data.data());
     }
-
-    //myAllocatedSplatCount = totalSplatCount;
 }
 
 void GSplatRenderer::render(RE_RenderContext r) 
