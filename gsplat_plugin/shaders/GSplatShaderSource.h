@@ -25,7 +25,6 @@ const char* const _GSplatWireVertexShader = R"glsl(
     in vec3 Cd;
     in vec3 scale;
     in vec4 orient;
-    //in float gSplatVertIdxNorm;
 
     uniform mat4 glH_ObjViewMatrix;
     uniform mat4 glH_ViewMatrix;
@@ -38,20 +37,20 @@ const char* const _GSplatWireVertexShader = R"glsl(
     } vsOut;
 
 
-    vec2 CalculateQuadPos(int gSplatVtxIdx)
+    vec2 CalculateQuadPos(int GSplatVtxIdx)
     {
         vec2 quadPos = vec2(0,0);
-        if (gSplatVtxIdx == 1 || gSplatVtxIdx == 2)
+        if (GSplatVtxIdx == 1 || GSplatVtxIdx == 2)
         {
             quadPos = vec2(1,0);
         }
         else
-        if (gSplatVtxIdx == 3 || gSplatVtxIdx == 4)
+        if (GSplatVtxIdx == 3 || GSplatVtxIdx == 4)
         {
             quadPos = vec2(1,1);
         }
         else
-        if (gSplatVtxIdx == 5 || gSplatVtxIdx == 6)
+        if (GSplatVtxIdx == 5 || GSplatVtxIdx == 6)
         {
             quadPos = vec2(0,1);
         }
@@ -66,9 +65,9 @@ const char* const _GSplatWireVertexShader = R"glsl(
         //vec4 centerClipPos = (glH_ProjectMatrix * vec4(centerWorldPos, 1));
         vec4 centerClipPos = ((glH_ProjectMatrix*mat4(1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1)) * vec4(centerWorldPos, 1));
         
-        int gSplatVtxIdx = gl_VertexID % 8;
+        int GSplatVtxIdx = gl_VertexID % 8;
         
-        vec2 quadPos = CalculateQuadPos(gSplatVtxIdx);
+        vec2 quadPos = CalculateQuadPos(GSplatVtxIdx);
                 
         vec4 _orient = orient.wxyz;
 
@@ -118,16 +117,20 @@ const std::string GSplatWireFragmentShader = getFullShaderSrc("330", {_GSplatWir
 const char* const _GSplatMainVertexShader = R"glsl(
     
     uniform vec3 WorldSpaceCameraPos;
-    uniform int gSplatCount;
-    uniform int gSplatVertexCount;
-    uniform int gSplatZOrderTexDim;
-    uniform sampler2D gSplatZOrderTexSampler;
-    uniform int gSplatShTexDim;
-    uniform sampler2D gSplatShTexSampler;
-    uniform int gSplatColorAlphaScaleOrientTexDim;
-    uniform sampler2D gSplatColorAlphaScaleOrientTexSampler;
-    uniform int gSplatShEnabled;
-    uniform vec3 gSplatOrigin;
+    uniform int GSplatCount;
+    uniform int GSplatVertexCount;
+    uniform int GSplatZOrderTexDim;
+    uniform isampler2D GSplatZOrderIntegerTexSampler;
+    uniform int GSplatPosColorAlphaScaleOrientTexDim;
+    uniform sampler2D GSplatPosColorAlphaScaleOrientTexSampler;
+    
+    uniform int GSplatShDeg1And2TexDim;
+    uniform sampler2D GSplatShDeg1And2TexSampler;
+    uniform int GSplatShDeg3TexDim;
+    uniform sampler2D GSplatShDeg3TexSampler;
+    
+    uniform int GSplatShEnabled;
+    uniform vec3 GSplatOrigin;
 
     out parms
     {
@@ -153,30 +156,27 @@ const char* const _GSplatMainVertexShader = R"glsl(
     uniform vec2	glH_ScreenSize;
     uniform mat4	glH_InvObjectMatrix;
 
-    void get_uv(float idx_norm, int tex_dim, int n, int pxl_stride, out vec2 uv, out vec2 uv_inc) {
-        int pxl_idx = int((idx_norm*(n*pxl_stride))+0.5);
-        int pxl_row = int(float(pxl_idx + 0.5)/tex_dim);
-        int pxl_column = pxl_idx - (pxl_row * tex_dim);
-        float pxl_width = 1.0 / float(tex_dim);
-        float pxl_half_width = 0.5 * pxl_width;
-        uv = vec2(pxl_column * pxl_width + pxl_half_width, pxl_row * pxl_width + pxl_half_width);
-        uv_inc = vec2(pxl_width, 0.0);
+    ivec2 computeTextureCoordinates(int index, int textureDimension, int pixelStride) {
+        int linearIndex = index * pixelStride;
+        int row = linearIndex / textureDimension;
+        int column = linearIndex % textureDimension;
+        return ivec2(column, row);
     }
 
-    vec2 CalculateQuadPos(int gSplatVtxIdx)
+    vec2 CalculateQuadPos(int GSplatVtxIdx)
     {
         vec2 quadPos = vec2(0,0);
-        if (gSplatVtxIdx == 0)
+        if (GSplatVtxIdx == 0)
         {
             quadPos = vec2(1,0);
         }
         else
-        if (gSplatVtxIdx == 3)
+        if (GSplatVtxIdx == 3)
         {
             quadPos = vec2(0,1);
         }
         else
-        if (gSplatVtxIdx == 1 || gSplatVtxIdx == 5)
+        if (GSplatVtxIdx == 1 || GSplatVtxIdx == 5)
         {
             quadPos = vec2(1,1);
         }
@@ -187,19 +187,17 @@ const char* const _GSplatMainVertexShader = R"glsl(
 
     void main()
     {
-        //int vtx_id = gl_VertexID; // if not instanced
-        int vtx_id = gl_InstanceID * gSplatVertexCount + gl_VertexID;
+        int GsplatIdx = gl_InstanceID;
+        int GSplatVtxIdx = gl_VertexID;
 
-        float gSplatIdxNorm = float(int(vtx_id / gSplatVertexCount)) / gSplatCount;
-        float gSplatVertIdxNorm = (vtx_id % gSplatVertexCount) / float(gSplatVertexCount);
+        ivec2 iuv;
+        
+        iuv = computeTextureCoordinates(GsplatIdx, GSplatZOrderTexDim, 1);
+        GsplatIdx = texelFetch(GSplatZOrderIntegerTexSampler, iuv, 0).r;
 
-        vec2 uv, uv_inc;
-        get_uv(gSplatIdxNorm, gSplatZOrderTexDim, gSplatCount, 1, uv, uv_inc);
-        gSplatIdxNorm = texture(gSplatZOrderTexSampler, uv).r;
-
-        get_uv(gSplatIdxNorm, gSplatColorAlphaScaleOrientTexDim, gSplatCount, 4, uv, uv_inc);
-        vec3 P = texture(gSplatColorAlphaScaleOrientTexSampler, uv).rgb;
-        P += gSplatOrigin;
+        iuv = computeTextureCoordinates(GsplatIdx, GSplatPosColorAlphaScaleOrientTexDim, 4);
+        vec3 P = texelFetch(GSplatPosColorAlphaScaleOrientTexSampler, iuv, 0).rgb;
+        P += GSplatOrigin;
         
         vec3 centerWorldPos = (glH_ObjViewMatrix * vec4(P, 1.0)).xyz;
         vec4 centerClipPos = ((glH_ProjectMatrix*mat4(1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1)) * vec4(centerWorldPos, 1));
@@ -212,21 +210,19 @@ const char* const _GSplatMainVertexShader = R"glsl(
         }
         else
         {
-            // UNPACK COLOR, ALPHA, SCALE, ORIENT ------------------------------------------------
-            vec4 color_and_alpha = texture(gSplatColorAlphaScaleOrientTexSampler, uv + uv_inc).rgba;
+            // Unpack color, alpha, scale, orient 
+            vec4 color_and_alpha = texelFetch(GSplatPosColorAlphaScaleOrientTexSampler, iuv + ivec2(1, 0), 0).rgba;
             vec3 color = color_and_alpha.rgb;
             float alpha = color_and_alpha.a;
-            vec3 scale = texture(gSplatColorAlphaScaleOrientTexSampler, uv + 2*uv_inc).rgb;
-            vec4 orient = texture(gSplatColorAlphaScaleOrientTexSampler, uv + 3*uv_inc).xyzw;
-            // -----------------------------------------------------------------------------------
+            vec3 scale = texelFetch(GSplatPosColorAlphaScaleOrientTexSampler, iuv + ivec2(2, 0), 0).rgb;
+            vec4 orient = texelFetch(GSplatPosColorAlphaScaleOrientTexSampler, iuv + ivec2(3, 0), 0).xyzw;
 
             vec4 _orient = orient.wxyz;
 
             vsOut.color = color;
             vsOut.opacity = alpha;
 
-            int gSplatVtxIdx = int((gSplatVertIdxNorm * 6) + 0.5);
-            vec2 quadPos = CalculateQuadPos(gSplatVtxIdx);
+            vec2 quadPos = CalculateQuadPos(GSplatVtxIdx);
             vsOut.pos = vec4(quadPos, 0, 1);
             
             mat3 splatRotScaleMat = CalcMatrixFromRotationScale(_orient, scale);
@@ -241,31 +237,31 @@ const char* const _GSplatMainVertexShader = R"glsl(
             vec2 view_axis1, view_axis2;
             DecomposeCovariance(cov2d, view_axis1, view_axis2);
 
-            if (gSplatShEnabled == 1)
+            if (GSplatShEnabled == 1)
             {
-                // UNPACK SPHERICAL HARMONICS --------------------------------------
-                get_uv(gSplatIdxNorm, gSplatShTexDim, gSplatCount, 16, uv, uv_inc);
-                vec3 sh1 = texture(gSplatShTexSampler, uv).rgb;
-                vec3 sh2 = texture(gSplatShTexSampler, uv + uv_inc).rgb;
-                vec3 sh3 = texture(gSplatShTexSampler, uv + 2*uv_inc).rgb;
-                vec3 sh4 = texture(gSplatShTexSampler, uv + 3*uv_inc).rgb;
-                vec3 sh5 = texture(gSplatShTexSampler, uv + 4*uv_inc).rgb;
-                vec3 sh6 = texture(gSplatShTexSampler, uv + 5*uv_inc).rgb;
-                vec3 sh7 = texture(gSplatShTexSampler, uv + 6*uv_inc).rgb;
-                vec3 sh8 = texture(gSplatShTexSampler, uv + 7*uv_inc).rgb;
-                vec3 sh9 = texture(gSplatShTexSampler, uv + 8*uv_inc).rgb;
-                vec3 shA = texture(gSplatShTexSampler, uv + 9*uv_inc).rgb;
-                vec3 shB = texture(gSplatShTexSampler, uv + 10*uv_inc).rgb;
-                vec3 shC = texture(gSplatShTexSampler, uv + 11*uv_inc).rgb;
-                vec3 shD = texture(gSplatShTexSampler, uv + 12*uv_inc).rgb;
-                vec3 shE = texture(gSplatShTexSampler, uv + 13*uv_inc).rgb;
-                vec3 shF = texture(gSplatShTexSampler, uv + 14*uv_inc).rgb;
-                // ----------------------------------------------------------------
+                // Unpack spherical harmonics
+                iuv = computeTextureCoordinates(GsplatIdx, GSplatShDeg1And2TexDim, 8);
+                vec3 sh1 = texelFetch(GSplatShDeg1And2TexSampler, iuv, 0).rgb;
+                vec3 sh2 = texelFetch(GSplatShDeg1And2TexSampler, iuv + ivec2(1,0), 0).rgb;
+                vec3 sh3 = texelFetch(GSplatShDeg1And2TexSampler, iuv + ivec2(2,0), 0).rgb;
+                vec3 sh4 = texelFetch(GSplatShDeg1And2TexSampler, iuv + ivec2(3,0), 0).rgb;
+                vec3 sh5 = texelFetch(GSplatShDeg1And2TexSampler, iuv + ivec2(4,0), 0).rgb;
+                vec3 sh6 = texelFetch(GSplatShDeg1And2TexSampler, iuv + ivec2(5,0), 0).rgb;
+                vec3 sh7 = texelFetch(GSplatShDeg1And2TexSampler, iuv + ivec2(6,0), 0).rgb;
+                vec3 sh8 = texelFetch(GSplatShDeg1And2TexSampler, iuv + ivec2(7,0), 0).rgb;
+                iuv = computeTextureCoordinates(GsplatIdx, GSplatShDeg3TexDim, 8);
+                vec3 sh9  = texelFetch(GSplatShDeg3TexSampler, iuv, 0).rgb;
+                vec3 sh10 = texelFetch(GSplatShDeg3TexSampler, iuv + ivec2(1,0), 0).rgb;
+                vec3 sh11 = texelFetch(GSplatShDeg3TexSampler, iuv + ivec2(2,0), 0).rgb;
+                vec3 sh12 = texelFetch(GSplatShDeg3TexSampler, iuv + ivec2(3,0), 0).rgb;
+                vec3 sh13 = texelFetch(GSplatShDeg3TexSampler, iuv + ivec2(4,0), 0).rgb;
+                vec3 sh14 = texelFetch(GSplatShDeg3TexSampler, iuv + ivec2(5,0), 0).rgb;
+                vec3 sh15 = texelFetch(GSplatShDeg3TexSampler, iuv + ivec2(6,0), 0).rgb;
 
                 vec3 worldViewDir = WorldSpaceCameraPos - centerWorldPos;
                 vec3 objViewDir = mat3(glH_InvObjectMatrix) * worldViewDir;
                 objViewDir = normalize(objViewDir);
-                vsOut.color = ShadeSH(vsOut.color, sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8, sh9, shA, shB, shC, shD, shE, shF, objViewDir, 3, false);
+                vsOut.color = ShadeSH(vsOut.color, sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8, sh9, sh10, sh11, sh12, sh13, sh14, sh15, objViewDir, 3, false);
             }
 
             vec2 deltaScreenPos = (quadPos.x * view_axis1 + quadPos.y * view_axis2) * 2 / glH_ScreenSize;

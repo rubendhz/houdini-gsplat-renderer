@@ -22,6 +22,8 @@
 
 class GSplatRenderer {
 private:
+    static const GA_Size GSPLAT_COUNT_MAX = 1 << 23; // 8,388,608 GSplats
+
     struct GSplatRegisterEntry {
         GU_Detail *gdp;
         RE_CacheVersion gversion;
@@ -52,17 +54,18 @@ private:
     UT_Set<std::string> myActiveRegistries;
 
     RE_Geometry *myTriangleGeo;
-    RE_Texture *myTexSortedIndexNormalised;
+    RE_Texture *myTexSortedIndex;
     int myGSplatSortedIndexTexDim;
-    RE_Texture *myTexGsplatSh;
-    int myGSplatShTexDim;
-    RE_Texture *myTexGsplatColorAlphaScaleOrient;
-    int myGSplatColorAlphaScaleOrientTexDim;
+    RE_Texture *myTexGsplatShDeg1And2;
+    RE_Texture *myTexGsplatShDeg3;
+    int myGSplatShDeg1And2TexDim;
+    int myGSplatShDeg3TexDim;
+    RE_Texture *myTexGsplatPosColorAlphaScaleOrient;
+    int myGSplatPosColorAlphaScaleOrientTexDim;
     std::vector<UT_Vector3F> mySplatPoints;
     UT_Vector3 mySplatOrigin;
 
-    int mySplatCount;
-    int myAllocatedSplatCount;
+    int myGSplatCount;
 
     bool myIsRenderEnabled;
     bool myIsShDataPresent;
@@ -74,7 +77,6 @@ private:
     bool myIsFreshGeometry;
     std::vector<float> myGsplatZDistances;
     std::vector<int> myGsplatZIndices;
-    std::vector<float> myGsplatZIndices_f;
     
     unsigned int closestSqrtPowerOf2(const int n);
 
@@ -84,6 +86,10 @@ private:
 
     void freeTextureResources();
     void initialiseTextureResources();
+
+    void initialiseTextureResourceCommon(RE_Texture* tex);
+    void setTextureFilteringCommon(RE_RenderContext r, RE_Texture* tex);
+
     void allocateTextureResources(RE_RenderContext r);
 
 public:

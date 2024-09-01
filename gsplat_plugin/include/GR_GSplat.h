@@ -125,7 +125,7 @@ private:
 
 	bool initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
 		const char* names[] = {"sh1", "sh2", "sh3", "sh4", "sh5", "sh6", "sh7", "sh8", "sh9", 
-                               "shA", "shB", "shC", "shD", "shE", "shF"};
+                               "sh10", "sh11", "sh12", "sh13", "sh14", "sh15"};
 		handles.fallback = false;
 		handles.valid = true;
 		for (int i = 0; i < 15; ++i) {
