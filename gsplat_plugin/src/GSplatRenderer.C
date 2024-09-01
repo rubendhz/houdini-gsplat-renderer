@@ -37,68 +37,101 @@ GSplatRenderer::GSplatRenderer()
     myIsRenderEnabled = true;
     myCanRender = false;
 
-    mySplatCount = 0;
-    myAllocatedSplatCount = 0;
+    myGSplatCount = 0;
+    //myAllocatedSplatCount = 0;
 
     mySplatOrigin = UT_Vector3(0, 0, 0);
 }
 
 void GSplatRenderer::freeTextureResources()
 {
-    myTexSortedIndexNormalised->free();
-    myTexGsplatColorAlphaScaleOrient->free();
-    myTexGsplatSh->free();
+    myTexSortedIndex->free();
+    myTexGsplatPosColorAlphaScaleOrient->free();
+    myTexGsplatShDeg1And2->free();
+    myTexGsplatShDeg3->free();
 
-    myTexSortedIndexNormalised = NULL;
-    myTexGsplatColorAlphaScaleOrient = NULL;
-    myTexGsplatSh = NULL;
+    myTexSortedIndex= NULL;
+    myTexGsplatPosColorAlphaScaleOrient = NULL;
+    myTexGsplatShDeg1And2 = NULL;
+    myTexGsplatShDeg3 = NULL;
 
     myGSplatSortedIndexTexDim = 0;
-    myGSplatColorAlphaScaleOrientTexDim = 0;
-    myGSplatShTexDim = 0;
+    myGSplatPosColorAlphaScaleOrientTexDim = 0;
+    myGSplatShDeg1And2TexDim = 0;
+    myGSplatShDeg3TexDim = 0;
+}
+
+void GSplatRenderer::initialiseTextureResourceCommon(RE_Texture* tex)
+{
+    tex->setCompression(RE_TextureCompress::RE_COMPRESS_NONE, false);
+    tex->setSamples(1);
+    tex->setMipMap(false, false);
+}
+
+void GSplatRenderer::setTextureFilteringCommon(RE_RenderContext r, RE_Texture* tex)
+{
+    tex->setMinFilter(r, RE_FILT_NEAREST);
+    tex->setMagFilter(r, RE_FILT_NEAREST);
+    tex->setTextureWrap(r,RE_CLAMP_EDGE,RE_CLAMP_EDGE);
+    tex->setDepthCompareMode(r, false);
 }
 
 void GSplatRenderer::initialiseTextureResources()
 {
-    myTexSortedIndexNormalised = RE_Texture::newTexture(RE_TEXTURE_2D);
-    myTexSortedIndexNormalised->setFormat(RE_GPU_FLOAT32, 1);
+    myTexSortedIndex = RE_Texture::newTexture(RE_TEXTURE_2D);
+    myTexSortedIndex->setDataType(RE_TEXTURE_DATA_INTEGER);
+    myTexSortedIndex->setFormat(RE_GPU_INT32, 1);
+    myTexSortedIndex->setClientFormat(RE_GPU_INT32, 1);
+    initialiseTextureResourceCommon(myTexSortedIndex);
     myGSplatSortedIndexTexDim = 0;
     
-    myTexGsplatColorAlphaScaleOrient = RE_Texture::newTexture(RE_TEXTURE_2D);
-    myTexGsplatColorAlphaScaleOrient->setFormat(RE_GPU_FLOAT16, 4); //RGBA
-    myGSplatColorAlphaScaleOrientTexDim = 0;
+    myTexGsplatPosColorAlphaScaleOrient = RE_Texture::newTexture(RE_TEXTURE_2D);
+    myTexGsplatPosColorAlphaScaleOrient->setFormat(RE_GPU_FLOAT16, 4); //RGBA
+    initialiseTextureResourceCommon(myTexGsplatPosColorAlphaScaleOrient);
+    myGSplatPosColorAlphaScaleOrientTexDim = 0;
 
-    myTexGsplatSh = RE_Texture::newTexture(RE_TEXTURE_2D);
-    myTexGsplatSh->setFormat(RE_GPU_FLOAT16, 3);
-    myGSplatShTexDim = 0;
+    myTexGsplatShDeg1And2 = RE_Texture::newTexture(RE_TEXTURE_2D);
+    myTexGsplatShDeg1And2->setFormat(RE_GPU_FLOAT16, 3);
+    initialiseTextureResourceCommon(myTexGsplatShDeg1And2);
+    myGSplatShDeg1And2TexDim = 0;
+
+    myTexGsplatShDeg3 = RE_Texture::newTexture(RE_TEXTURE_2D);
+    myTexGsplatShDeg3->setFormat(RE_GPU_FLOAT16, 3);
+    initialiseTextureResourceCommon(myTexGsplatShDeg3);
+    myGSplatShDeg3TexDim = 0;
 }
 
 void GSplatRenderer::allocateTextureResources(RE_RenderContext r)
 {
-    int newGSplatSortedIndexTexDim = closestSqrtPowerOf2(mySplatCount);
-    int newGSplatColorAlphaScaleOrientTexDim = closestSqrtPowerOf2(mySplatCount * 4); //RGBA, ORIENT, SCALE // TODO: all PCull?
+    int newGSplatSortedIndexTexDim = closestSqrtPowerOf2(myGSplatCount);
+    int newGSplatColorAlphaScaleOrientTexDim = closestSqrtPowerOf2(myGSplatCount * 4); //RGBA, ORIENT, SCALE // TODO: all PCull?
     int newGSplatShTexDim = -1;
     
     if (myIsShDataPresent)
     {
-        newGSplatShTexDim = closestSqrtPowerOf2(mySplatCount * 16); //16 to keep power of two.
+        // We are going to store SH in two textures, one for deg 1 (1 to 8) and 2 (9 to 15), and another for deg 3
+        // we pad deg 3 texture to 8 to keep power of two.
+        newGSplatShTexDim = closestSqrtPowerOf2(myGSplatCount * 8); 
     }
 
     if (newGSplatSortedIndexTexDim != myGSplatSortedIndexTexDim
-        || newGSplatColorAlphaScaleOrientTexDim != myGSplatColorAlphaScaleOrientTexDim
-        || newGSplatShTexDim != myGSplatShTexDim)
+        || newGSplatColorAlphaScaleOrientTexDim != myGSplatPosColorAlphaScaleOrientTexDim
+        || newGSplatShTexDim != myGSplatShDeg1And2TexDim)
     {
         myGSplatSortedIndexTexDim = newGSplatSortedIndexTexDim;
-        myTexSortedIndexNormalised->setResolution(myGSplatSortedIndexTexDim, myGSplatSortedIndexTexDim);
+        myTexSortedIndex->setResolution(myGSplatSortedIndexTexDim, myGSplatSortedIndexTexDim);
+
+        myGSplatPosColorAlphaScaleOrientTexDim = newGSplatColorAlphaScaleOrientTexDim;
+        myTexGsplatPosColorAlphaScaleOrient->setResolution(myGSplatPosColorAlphaScaleOrientTexDim, myGSplatPosColorAlphaScaleOrientTexDim);
         
-        myGSplatColorAlphaScaleOrientTexDim = newGSplatColorAlphaScaleOrientTexDim;
-        myTexGsplatColorAlphaScaleOrient->setResolution(myGSplatColorAlphaScaleOrientTexDim, myGSplatColorAlphaScaleOrientTexDim);
-        
-        myGSplatShTexDim = 0;
+        myGSplatShDeg1And2TexDim = 0;
+        myGSplatShDeg3TexDim = 0;
         if (myIsShDataPresent)
         {
-            myGSplatShTexDim = newGSplatShTexDim;
-            myTexGsplatSh->setResolution(myGSplatShTexDim, myGSplatShTexDim);
+            myGSplatShDeg1And2TexDim = newGSplatShTexDim;
+            myGSplatShDeg3TexDim = newGSplatShTexDim;
+            myTexGsplatShDeg1And2->setResolution(myGSplatShDeg1And2TexDim, myGSplatShDeg1And2TexDim);
+            myTexGsplatShDeg3->setResolution(myGSplatShDeg3TexDim, myGSplatShDeg3TexDim);
         }
     }
 }
@@ -152,7 +185,6 @@ bool GSplatRenderer::argsortByDistance(const UT_Vector3F *posSplatPointsData, co
     {    
         myGsplatZDistances.resize(pointCount);
         myGsplatZIndices.resize(pointCount);
-        myGsplatZIndices_f.resize(pointCount);
 
         // Fill indices with 0, 1, 2, ...
         std::iota(myGsplatZIndices.begin(), myGsplatZIndices.end(), 0); 
@@ -173,21 +205,11 @@ bool GSplatRenderer::argsortByDistance(const UT_Vector3F *posSplatPointsData, co
             [&](size_t i, size_t j) { return myGsplatZDistances[i] < myGsplatZDistances[j]; }
         );
 
-        // Transform indices to normalized values
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, pointCount),
-            [&](const tbb::blocked_range<size_t>& r) {
-                for (size_t i = r.begin(); i != r.end(); ++i) {
-                    myGsplatZIndices_f[i] = static_cast<float>(myGsplatZIndices[i]) / pointCount;
-                }
-            }
-        );
-
         mySortDistanceAccum = 0.0;
         sorted = true;
     }
 
     myPreviousCameraPos = cameraPos;
-
     return sorted;
 }
 
@@ -221,7 +243,6 @@ std::string GSplatRenderer::registerUpdate(
     // go over the entries in the registry and if there is a gdp match and version is different, remove the entry
     for (UT_Map<std::string, std::unique_ptr<GSplatRegisterEntry>>::iterator it = myRenderStateRegistry.begin(); it != myRenderStateRegistry.end(); ) 
     {
-        std::string primHandle = it->first;
         std::unique_ptr<GSplatRegisterEntry>& gsplatEntryPtr = it->second;
 
         if (gsplatEntryPtr->gdp == gdp)
@@ -307,9 +328,10 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
         myIsFreshGeometry = true;
         myGsplatZDistances.clear();
         myGsplatZIndices.clear();
-        myGsplatZIndices_f.clear();
         mySortDistanceAccum = 0.0;
     }
+
+    GA_Size GSplatCountMax = GSPLAT_COUNT_MAX - 1;
 
     myActiveRegistries.clear();
     GA_Size totalSplatCount = 0; 
@@ -323,6 +345,10 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
             totalSplatCount += it->second->splatCount;
             isShDataPresent = it->second->splatShxs->size() > 0;
         }
+        if (totalSplatCount >= GSplatCountMax)
+        {
+            break;
+        }
     }
 
     if (!totalSplatCount)
@@ -331,12 +357,12 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
     }
 
     myCanRender = true;
-    mySplatCount = totalSplatCount;
+    myGSplatCount = std::min(totalSplatCount, GSplatCountMax);
     myIsShDataPresent = isShDataPresent;
 
     const char *posname = "P";
 
-    mySplatPoints.resize(mySplatCount);
+    mySplatPoints.resize(myGSplatCount);
 
     RE_VertexArray *posSplatTriangles = myTriangleGeo->findCachedAttrib(r, posname, RE_GPU_FLOAT16, 3, RE_ARRAY_POINT, true);
     UT_Vector3F *pTriangleGeoData = static_cast<UT_Vector3F *>(posSplatTriangles->map(r));
@@ -348,11 +374,13 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
         
     allocateTextureResources(r);
     
-    std::vector<fpreal16> colorAlphaScaleOrient_data;
-    colorAlphaScaleOrient_data.resize(myGSplatColorAlphaScaleOrientTexDim * myGSplatColorAlphaScaleOrientTexDim * 4); // *3 for rgb
+    std::vector<fpreal16> PosColorAlphaScaleOrient_data;
+    PosColorAlphaScaleOrient_data.resize(myGSplatPosColorAlphaScaleOrientTexDim * myGSplatPosColorAlphaScaleOrientTexDim * 4); // *3 for rgb
 
-    std::vector<fpreal16> sh_data;
-    sh_data.resize(myIsShDataPresent ? myGSplatShTexDim * myGSplatShTexDim * 3 : 0);
+    std::vector<fpreal16> shDeg1and2_data;
+    std::vector<fpreal16> shDeg3_data;
+    shDeg1and2_data.resize(myIsShDataPresent ? myGSplatShDeg1And2TexDim * myGSplatShDeg1And2TexDim * 3 : 0);
+    shDeg3_data.resize(myIsShDataPresent ? myGSplatShDeg3TexDim * myGSplatShDeg3TexDim * 3 : 0);
 
     mySplatOrigin = UT_Vector3(0, 0, 0);
     int splatClusters = 0;
@@ -371,13 +399,12 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
         mySplatOrigin /= splatClusters;
     }
 
-    int offset = 0;
+    GA_Offset offset = 0;
     for (UT_Set<std::string>::const_iterator it0 = myActiveRegistries.begin(); it0 != myActiveRegistries.end(); ++it0)
     {
         UT_Map<std::string, std::unique_ptr<GSplatRegisterEntry>>::iterator it = myRenderStateRegistry.find(*it0);
 
-        std::string primHandle = it->first;
-        const GSplatRegisterEntry* entry = myRenderStateRegistry[primHandle].get();
+        const GSplatRegisterEntry* entry = myRenderStateRegistry[it->first].get();
         if (entry)
         {
             const UT_Vector3Array& splatPts = *entry->splatPts;
@@ -390,68 +417,102 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
             const MyUT_Matrix4HArray& splatShzs = *entry->splatShzs;
 
             GA_Size splatCount = entry->splatCount;
+            GA_Size gsplatBudgetLeft = (GSplatCountMax - offset);
+            if (gsplatBudgetLeft <= 0)
+            {
+                break;
+            }
+            else
+            {
+                splatCount = std::min(splatCount, gsplatBudgetLeft);
+            }
 
             tbb::parallel_for(tbb::blocked_range<GA_Size>(0, splatCount), [&](const tbb::blocked_range<GA_Size>& r) 
             {
-                for (GA_Size i = r.begin(); i != r.end(); ++i) 
+                for (GA_Offset i = r.begin(); i != r.end(); ++i) 
                 {
-                    GA_Size ii = i;
-                    GA_Size offset_inner = offset + i;
+                    GA_Offset offset_inner = offset + i;
 
-                    mySplatPoints[offset_inner] = splatPts(ii);
+                    mySplatPoints[offset_inner] = splatPts(i);
 
-                    int offset_colorAlphaScaleOrient = offset_inner * 4 * 4; // Calculate the starting index for this point's data
+                    GA_Offset offset_posColorAlphaScaleOrient = offset_inner * 4 * 4; // Calculate the starting index for this point's data
 
                     // Position and RGBA data processing
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient]     = splatPts(ii).x() - mySplatOrigin.x();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 1] = splatPts(ii).y() - mySplatOrigin.y();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 2] = splatPts(ii).z() - mySplatOrigin.z();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 3] = 0; // Padded zero
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient]     = splatPts(i).x() - mySplatOrigin.x();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 1] = splatPts(i).y() - mySplatOrigin.y();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 2] = splatPts(i).z() - mySplatOrigin.z();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 3] = 0; // Padded zero
                     
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 4]   = splatColors(ii).x();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 5]   = splatColors(ii).y();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 6]   = splatColors(ii).z();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 7]   = splatAlphas(ii);
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 4]   = splatColors(i).x();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 5]   = splatColors(i).y();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 6]   = splatColors(i).z();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 7]   = splatAlphas(i);
                     //SCALExyz (waste one entry here)
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 8]   = splatScales(ii).x();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 9]   = splatScales(ii).y();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 10]  = splatScales(ii).z();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 11]  = 0;
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 8]   = splatScales(i).x();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 9]   = splatScales(i).y();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 10]  = splatScales(i).z();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 11]  = 0; // Padded zero
                     //Orient
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 12]  = splatOrients(ii).x();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 13]  = splatOrients(ii).y();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 14]  = splatOrients(ii).z();
-                    colorAlphaScaleOrient_data[offset_colorAlphaScaleOrient + 15]  = splatOrients(ii).w();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 12]  = splatOrients(i).x();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 13]  = splatOrients(i).y();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 14]  = splatOrients(i).z();
+                    PosColorAlphaScaleOrient_data[offset_posColorAlphaScaleOrient + 15]  = splatOrients(i).w();
 
                     if (myIsShDataPresent) 
                     {
-                        int offset_sh = offset_inner * 16 * 3; // Adjusted for spherical harmonics data
+                        GA_Offset offset_sh = offset_inner * 8 * 3; // Adjusted for spherical harmonics data
                         for (int j = 0; j < 15; ++j) 
                         {
                             int row = int(float(j) / 4);
                             int col = j % 4;
-                            sh_data[offset_sh + 3*j]      = splatShxs(ii)(row, col);
-                            sh_data[offset_sh + 3*j + 1]  = splatShys(ii)(row, col);
-                            sh_data[offset_sh + 3*j + 2]  = splatShzs(ii)(row, col);
+                            if (j < 8)
+                            {
+                                shDeg1and2_data[offset_sh + 3*j]      = splatShxs(i)(row, col);
+                                shDeg1and2_data[offset_sh + 3*j + 1]  = splatShys(i)(row, col);
+                                shDeg1and2_data[offset_sh + 3*j + 2]  = splatShzs(i)(row, col);
+                            }
+                            else
+                            {
+                                shDeg3_data[offset_sh + 3*(j-8)]      = splatShxs(i)(row, col);
+                                shDeg3_data[offset_sh + 3*(j-8) + 1]  = splatShys(i)(row, col);
+                                shDeg3_data[offset_sh + 3*(j-8) + 2]  = splatShzs(i)(row, col);
+                            }
                         }
+                        // Padded zeros
+                        shDeg3_data[offset_sh + 3*8]      = 0.0;
+                        shDeg3_data[offset_sh + 3*8 + 1]  = 0.0;
+                        shDeg3_data[offset_sh + 3*8 + 2]  = 0.0;
                     }
                 }
             });
 
             offset += splatCount;
+            if (offset >= GSplatCountMax)
+            {
+                break;
+            }
         }
     }
+
     posSplatTriangles->unmap(r);
 
     myTriangleGeo->connectAllPrims(r, RE_GEO_SHADED_IDX, RE_PRIM_TRIANGLES, NULL, true);
     
-    myTexGsplatColorAlphaScaleOrient->setTexture(r, colorAlphaScaleOrient_data.data());
+    setTextureFilteringCommon(r, myTexGsplatPosColorAlphaScaleOrient);
+    myTexGsplatPosColorAlphaScaleOrient->setTexture(r, PosColorAlphaScaleOrient_data.data());
+
     if (myIsShDataPresent)
     {
-        myTexGsplatSh->setTexture(r, sh_data.data());
+        shDeg1and2_data.resize(myGSplatShDeg1And2TexDim * myGSplatShDeg1And2TexDim);
+        setTextureFilteringCommon(r, myTexGsplatShDeg1And2);
+        myTexGsplatShDeg1And2->setTexture(r, shDeg1and2_data.data());
+
+        shDeg3_data.resize(myGSplatShDeg3TexDim * myGSplatShDeg3TexDim);
+        setTextureFilteringCommon(r, myTexGsplatShDeg3);
+        myTexGsplatShDeg3->setTexture(r, shDeg3_data.data());
     }
 
-    myAllocatedSplatCount = totalSplatCount;
+    //myAllocatedSplatCount = totalSplatCount;
 }
 
 void GSplatRenderer::render(RE_RenderContext r) 
@@ -480,8 +541,13 @@ void GSplatRenderer::render(RE_RenderContext r)
     int splatCount = mySplatPoints.size();
     if (argsortByDistance(mySplatPoints.data(), camera_pos, splatCount))
     {
-        myGsplatZIndices_f.resize(myGSplatSortedIndexTexDim*myGSplatSortedIndexTexDim);
-        myTexSortedIndexNormalised->setTexture(r, myGsplatZIndices_f.data());
+        int dataEntryCount = myGSplatSortedIndexTexDim*myGSplatSortedIndexTexDim;
+        if (myGsplatZIndices.size() != dataEntryCount)
+        {
+            myGsplatZIndices.resize(dataEntryCount);
+            setTextureFilteringCommon(r, myTexSortedIndex);
+            myTexSortedIndex->setTexture(r, myGsplatZIndices.data());
+        }
     }
     
     // gaussians are rendered after all opaque objects (DM_GSplatHook calls this function after rendering all opaque objects)
@@ -506,23 +572,27 @@ void GSplatRenderer::render(RE_RenderContext r)
         r->setBlendEquation(RE_BLEND_ADD);
     }
 
-    theGSShader->bindInt(r, "gSplatCount", splatCount);
-    theGSShader->bindInt(r, "gSplatVertexCount", 6);
+    theGSShader->bindInt(r, "GSplatCount", splatCount);
+    theGSShader->bindInt(r, "GSplatVertexCount", 6);
 
-    theGSShader->bindVector(r, "gSplatOrigin", mySplatOrigin);
-    
-    theGSShader->bindInt(r, "gSplatZOrderTexDim", myGSplatSortedIndexTexDim);
-    r->bindTexture(myTexSortedIndexNormalised, theGSShader->getUniformTextureUnit("gSplatZOrderTexSampler"));
-    
-    theGSShader->bindInt(r, "gSplatColorAlphaScaleOrientTexDim", myGSplatColorAlphaScaleOrientTexDim);
-    r->bindTexture(myTexGsplatColorAlphaScaleOrient, theGSShader->getUniformTextureUnit("gSplatColorAlphaScaleOrientTexSampler"));
+    //mesuare time
+    theGSShader->bindVector(r, "GSplatOrigin", mySplatOrigin);
 
-    theGSShader->bindInt(r, "gSplatShEnabled", myIsShDataPresent ? 1 : 0);
+    theGSShader->bindInt(r, "GSplatZOrderTexDim", myGSplatSortedIndexTexDim);
+    
+    r->bindTexture(myTexSortedIndex, theGSShader->getUniformTextureUnit("GSplatZOrderIntegerTexSampler"));
+
+    theGSShader->bindInt(r, "GSplatPosColorAlphaScaleOrientTexDim", myGSplatPosColorAlphaScaleOrientTexDim);
+    r->bindTexture(myTexGsplatPosColorAlphaScaleOrient, theGSShader->getUniformTextureUnit("GSplatPosColorAlphaScaleOrientTexSampler"));
+
+    theGSShader->bindInt(r, "GSplatShEnabled", myIsShDataPresent ? 1 : 0);
     if (myIsShDataPresent)
     {
         theGSShader->bindVector(r, "WorldSpaceCameraPos", camera_pos);
-        theGSShader->bindInt(r, "gSplatShTexDim", myGSplatShTexDim);
-        r->bindTexture(myTexGsplatSh, theGSShader->getUniformTextureUnit("gSplatShTexSampler"));
+        theGSShader->bindInt(r, "GSplatShDeg1And2TexDim", myGSplatShDeg1And2TexDim);
+        r->bindTexture(myTexGsplatShDeg1And2, theGSShader->getUniformTextureUnit("GSplatShDeg1And2TexSampler"));
+        theGSShader->bindInt(r, "GSplatShDeg3TexDim", myGSplatShDeg3TexDim);
+        r->bindTexture(myTexGsplatShDeg3, theGSShader->getUniformTextureUnit("GSplatShDeg3TexSampler"));
     }
 
     myTriangleGeo->drawInstanced(r, RE_GEO_SHADED_IDX, splatCount); // non instanced version: myTriangleGeo->draw(r, RE_GEO_SHADED_IDX);
@@ -534,7 +604,6 @@ void GSplatRenderer::render(RE_RenderContext r)
     
     r->popBlendState();
     r->popDepthState();
-    
 
     r->popShader();
 }
