@@ -4,6 +4,10 @@
 [![Watch the video](https://i.vimeocdn.com/video/1851733134-68364e97e7700b64d42eb89669d26a56027175614256171f47b983ad7da5fa4f-d?f=webp)](https://vimeo.com/945995885)  
 [**Watch an early sneak peek**](https://vimeo.com/945995885)
 
+# Disclaimer
+
+**This project is a side endeavor, and the code is provided as is.** While I perform _some_ testing, it has **not** been thoroughly validated across platforms or Houdini versions. Please keep this in mind and understand that I offer no guarantees of robustness or full compatibility. Thank you for your understanding!
+
 # Context
 
 In November 2023, while sitting in the dentist's chair trying to escape to my happy place, it struck me: despite the surge in Gaussian Splatting rasterisers, none had made their way into Houdini's viewport (at least, none that I knew of). At that moment, it seemed criminal, though maybe that was just the anesthesia wearing off and my irritability setting in.
@@ -24,7 +28,9 @@ Without getting bogged down in too many details (you'll probably get more out of
 
 # How to install
 
-This implementation requires compiling source code. For convenience I am providing pre-compiled binary files for Windows and MacOS. You can find the files under the `compiled` folder in this repository. It should be just a matter of placing the file that matches your platform (Windows/MacOS/Linux) and Houdini version in the appropriate folder path, as described [here](https://www.sidefx.com/docs/hdk/_h_d_k__intro__creating_plugins.html).
+**Note:** Houdini 20.5+ is a requirement.
+
+This implementation requires compiling source code. For those Houdini users not used to it, this could pose some challenges, please be mindful of this. For convenience I am providing pre-compiled binary files for Windows and MacOS. You can find the files under the `compiled` folder in this repository. It should be just a matter of placing the file that matches your platform (Windows/MacOS/Linux) and Houdini version in the appropriate folder path, as described [here](https://www.sidefx.com/docs/hdk/_h_d_k__intro__creating_plugins.html).
 
 Compiling from source yourself is a bit more involved but not too bad. You can read all about it [here](https://www.sidefx.com/docs/hdk/_h_d_k__intro__compiling.html) and define a workflow that works for you. My approach has been to use Houdini's `hcustom` command. Below the simplest snippet I could come up with that gets the job done, hopefully useful to get you started setting up a workflow that suits your needs.
 
@@ -50,19 +56,15 @@ Please, don't think about the `GSplatSOP` as "the renderer". All that the SOP do
 
 Plenty!
 
-I've always taken this project as a playground, and I intend to keep exploring new ideas and refining things in the near future. There are several things I've started playing with that might find their way into the repository soon. Some of these address known issues, while others involve improvements and new features. Below is a non-comprehensive list of what's on my radar:
+I've always taken this project as a playground, and I intend to keep exploring new ideas and refining things in the near future. There are several things I've started playing with that might find their way into the repository soon. Some of these address known issues (see list below), while others involve improvements and new features.
 
 **Current limitations:**
 - Expect this to work only on a single viewport
 - No Spherical Harmonics rotation currently
 - Other 3D elements don't render "in-place" with GSplats
 
-**Improvements/New Features:**
-- Performance improvements for time-dependent data
-- Debug and other visualisation modes
-- GSplats for IBL lighting
+Please keep these limitations in mind, and note that I am not able to commit to a detailed roadmap or specific timeline for addressing them.
 
-Having said that, please note that I can’t currently commit to a roadmap or anything of the sort.
 
 # Acknowledgements
 I don't think I would have gotten this far without the inspiration from so many amazing open-source projects. I’d like to highlight two in particular; althoughI haven’t directly reached out to the authors, their work has been massively helpful, so I want to give special kudos to them:
