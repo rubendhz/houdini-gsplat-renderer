@@ -12,6 +12,7 @@
 #include "GSplatPluginVersion.h"
 #include "GSplatRenderer.h"
 #include "GR_GSplat.h"
+#include "GSplatLogger.h"
 
 #include <UT/UT_Set.h>
 #include <UT/UT_UniquePtr.h>
@@ -36,6 +37,7 @@ GSplatRenderer::GSplatRenderer()
     myIsShDataPresent = false;
     myIsRenderEnabled = true;
     myCanRender = false;
+    myIsExplicitCameraPosSet = false;
 
     myGSplatCount = 0;
     //myAllocatedSplatCount = 0;
@@ -229,7 +231,7 @@ std::string GSplatRenderer::registerUpdate(
     const MyUT_Matrix4HArray& splatShys,
     const MyUT_Matrix4HArray& splatShzs) 
 {
-    printPluginVersionOnce();
+    GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::INFO, "Version: %s", GSPLAT_PLUGIN_VERSION);
 
     // if there are entries in the registry for this gdp, 
     // gversion will be different from the cache version of the entry
@@ -337,17 +339,22 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
     GA_Size totalSplatCount = 0; 
     bool isShDataPresent = true;
     myCanRender = false;
+    bool isGsplatCapHit = false;
+    int totalActiveSplats = 0;
     for (UT_Map<std::string, std::unique_ptr<GSplatRegisterEntry>>::const_iterator it = myRenderStateRegistry.begin(); it != myRenderStateRegistry.end(); ++it)
     {
-        if (it->second->active && it->second->splatCount > 0) //TODO: is this count necessary? if so, earlier?
-        {
+        totalActiveSplats += it->second->splatCount;
+        if (!isGsplatCapHit && 
+            it->second->active && 
+            it->second->splatCount > 0 //TODO: is this count necessary? if so, earlier?
+        ) {
             myActiveRegistries.insert(it->first);
             totalSplatCount += it->second->splatCount;
             isShDataPresent = it->second->splatShxs->size() > 0;
         }
         if (totalSplatCount >= GSplatCountMax)
         {
-            break;
+            isGsplatCapHit = true;
         }
     }
 
@@ -356,8 +363,19 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
         return;
     }
 
-    myCanRender = true;
     myGSplatCount = std::min(totalSplatCount, GSplatCountMax);
+    if (isGsplatCapHit)
+    {
+        GSplatLogger::getInstance().log(
+            GSplatLogger::LogLevel::WARNING,
+            "%s active GSplats, exceeds %s budget. Culling excess %s GSplats!",
+            GSplatLogger::formatInteger(totalActiveSplats).c_str(),
+            GSplatLogger::formatInteger(GSplatCountMax).c_str(),
+            GSplatLogger::formatInteger(totalActiveSplats - myGSplatCount).c_str()
+        );
+    }
+
+    myCanRender = true;
     myIsShDataPresent = isShDataPresent;
 
     const char *posname = "P";
@@ -530,11 +548,19 @@ void GSplatRenderer::render(RE_RenderContext r)
         return;
     }
 
-    UT_Matrix4D view_mat;
-    r->getMatrix(view_mat);
-    view_mat.invert();
-    UT_Vector3 camera_pos = UT_Vector3(0,0,0);
-    camera_pos = rowVecMult(camera_pos, view_mat);
+    UT_Vector3 camera_pos;
+    if (myIsExplicitCameraPosSet)
+    {
+        camera_pos = myExplicitCameraPos;
+    }
+    else
+    {
+        UT_Matrix4D view_mat;
+        r->getMatrix(view_mat);
+        view_mat.invert();
+        camera_pos = UT_Vector3(0,0,0);
+        camera_pos = rowVecMult(camera_pos, view_mat);
+    }
 
     int splatCount = mySplatPoints.size();
     if (argsortByDistance(mySplatPoints.data(), camera_pos, splatCount))
@@ -569,17 +595,11 @@ void GSplatRenderer::render(RE_RenderContext r)
     {
         r->setBlendEquation(RE_BLEND_ADD);
     }
-
     theGSShader->bindInt(r, "GSplatCount", splatCount);
     theGSShader->bindInt(r, "GSplatVertexCount", 6);
-
-    //mesuare time
     theGSShader->bindVector(r, "GSplatOrigin", mySplatOrigin);
-
     theGSShader->bindInt(r, "GSplatZOrderTexDim", myGSplatSortedIndexTexDim);
-    
     r->bindTexture(myTexSortedIndex, theGSShader->getUniformTextureUnit("GSplatZOrderIntegerTexSampler"));
-
     theGSShader->bindInt(r, "GSplatPosColorAlphaScaleOrientTexDim", myGSplatPosColorAlphaScaleOrientTexDim);
     r->bindTexture(myTexGsplatPosColorAlphaScaleOrient, theGSShader->getUniformTextureUnit("GSplatPosColorAlphaScaleOrientTexSampler"));
 
@@ -622,9 +642,17 @@ void GSplatRenderer::postRender()
         entry.second->active = false;
         ++entry.second->age;
     }
+
+    myIsExplicitCameraPosSet = false;
 }
 
 void GSplatRenderer::setRenderingEnabled(bool isRenderEnabled) 
 {
     myIsRenderEnabled = isRenderEnabled;
+}
+
+void GSplatRenderer::setExplicitCameraPos(const UT_Vector3 explicitCameraPos)
+{
+    myIsExplicitCameraPosSet = true;
+    myExplicitCameraPos = explicitCameraPos;
 }

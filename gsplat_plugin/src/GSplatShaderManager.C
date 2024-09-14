@@ -58,7 +58,7 @@ bool GsplatShaderManager::setupShader(RE_Shader* shader, const GSplatShaderType 
 {
     const char* vertexShaderSource = nullptr;
     const char* fragmentShaderSource = nullptr;
-
+    
     switch (shaderType) 
     {
         case GSPLAT_MAIN_SHADER:
@@ -72,9 +72,13 @@ bool GsplatShaderManager::setupShader(RE_Shader* shader, const GSplatShaderType 
             break;
     }
 
-    shader->addShader(r, RE_SHADER_VERTEX, vertexShaderSource, "VertexShader", 0);
-    shader->addShader(r, RE_SHADER_FRAGMENT, fragmentShaderSource, "FragmentShader", 0);
-    return shader->linkShaders(r);
+    UT_String msg;
+    shader->addShader(r, RE_SHADER_VERTEX, vertexShaderSource, "VertexShader", 0, &msg);
+    shader->addShader(r, RE_SHADER_FRAGMENT, fragmentShaderSource, "FragmentShader", 0, &msg);
+
+    bool linkSuccess = shader->linkShaders(r, &msg);
+    bool validateSuccess = shader->validateShader(r, &msg);
+    return linkSuccess && validateSuccess;
 }
 
 void GsplatShaderManager::unloadAllShaders() {

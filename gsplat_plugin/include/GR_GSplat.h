@@ -53,118 +53,72 @@ private:
 
 public:
 	GR_PrimGsplat(const GR_RenderInfo *info,
-				    const char *cache_name,
-				    const GEO_Primitive *prim);
-    ~GR_PrimGsplat() override;
+					const char *cache_name,
+					const GEO_Primitive *prim);
+	~GR_PrimGsplat() override;
 
-    const char  *className() const override { return "GR_PrimGsplat"; }
+	const char  *className() const override { return "GR_PrimGsplat"; }
 
-    /// See if the Gsplat primitive can be consumed by this primitive. Only
-    /// Gsplat from the same detail will ever be passed in. 
-    GR_PrimAcceptResult acceptPrimitive(GT_PrimitiveType t,
+	/// See if the Gsplat primitive can be consumed by this primitive. Only
+	/// Gsplat from the same detail will ever be passed in. 
+	GR_PrimAcceptResult acceptPrimitive(GT_PrimitiveType t,
 					int geo_type,
 					const GT_PrimitiveHandle &ph,
 					const GEO_Primitive *prim) override;
 
-    /// Called whenever the parent detail is changed, draw modes are changed,
-    /// selection is changed, or certain volatile display options are changed
-    /// (such as level of detail).
-    void                update(RE_RenderContext                 r,
-			       const GT_PrimitiveHandle  &primh,
-			       const GR_UpdateParms	 &p) override;
+	/// Called whenever the parent detail is changed, draw modes are changed,
+	/// selection is changed, or certain volatile display options are changed
+	/// (such as level of detail).
+	void                update(RE_RenderContext                 r,
+					const GT_PrimitiveHandle  &primh,
+					const GR_UpdateParms	 &p) override;
 
-    /// Called whenever the primitive is required to render, which may be more
-    /// than one time per viewport redraw (beauty, shadow passes, wireframe-over)
-    /// It also may be called outside of a viewport redraw to do picking of the
-    /// geometry.
-    void                render(RE_RenderContext              r,
-			       GR_RenderMode	       render_mode,
-			       GR_RenderFlags	       flags,
-			       GR_DrawParms	       dp) override;
-    void                renderDecoration(
-                                RE_RenderContext r,
+	/// Called whenever the primitive is required to render, which may be more
+	/// than one time per viewport redraw (beauty, shadow passes, wireframe-over)
+	/// It also may be called outside of a viewport redraw to do picking of the
+	/// geometry.
+	void                render(RE_RenderContext              r,
+					GR_RenderMode	       render_mode,
+					GR_RenderFlags	       flags,
+					GR_DrawParms	       dp) override;
+	void                renderDecoration(
+								RE_RenderContext r,
 				GR_Decoration decor,
 				const GR_DecorationParms &parms) override;
-    int                 renderPick(RE_RenderContext r,
-				   const GR_DisplayOption *opt,
-				   unsigned int pick_type,
-				   GR_PickStyle pick_style,
-				   bool has_pick_map) override;
-private:
+	int                 renderPick(RE_RenderContext r,
+					const GR_DisplayOption *opt,
+					unsigned int pick_type,
+					GR_PickStyle pick_style,
+					bool has_pick_map) override;
 
-    struct SHHandles {
-    	GA_ROHandleV3 sh[16];
+private:
+	struct SHHandles {
+		GA_ROHandleV3 sh[16];
 		GA_ROHandleF sh_fallback[45];
 		bool fallback;
 		bool valid;
 	};
 
-	bool initSHHandle(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) {
-		const GA_Attribute *attr = gdp->findPointAttribute(name);
-		if (!attr) {
-			return false;
-		}
-		handles.sh[index] = GA_ROHandleV3(attr);
-		if (!handles.sh[index].isValid()) {
-			return false;
-		}
-		return true;
-	}
+	bool initSHHandle(const GU_Detail *gdp, SHHandles& handles, const char* name, int index);
+	bool initSHHandleFallback(const GU_Detail *gdp, SHHandles& handles, const char* name, int index);
+	bool initAllSHHandles(const GU_Detail *gdp, SHHandles& handles);
 
-	bool initSHHandleFallback(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) {
-		const GA_Attribute *attr = gdp->findPointAttribute(name);
-		if (!attr) {
-			return false;
-		}
-		handles.sh_fallback[index] = GA_ROHandleF(attr);
-		if (!handles.sh_fallback[index].isValid()) {
-			return false;
-		}
-		return true;
-	}
-
-	bool initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
-		const char* names[] = {"sh1", "sh2", "sh3", "sh4", "sh5", "sh6", "sh7", "sh8", "sh9", 
-                               "sh10", "sh11", "sh12", "sh13", "sh14", "sh15"};
-		handles.fallback = false;
-		handles.valid = true;
-		for (int i = 0; i < 15; ++i) {
-			if (!initSHHandle(gdp, handles, names[i], i))
-			{
-				handles.fallback = true;
-				break;
-			}
-		}
-
-		if (handles.fallback)
-		{
-			const char* name_template = "f_rest_%d";
-			char name_i[50];
-			for (int i = 0; i < 45; ++i) {
-				sprintf(name_i, name_template, i);
-				if (!initSHHandleFallback(gdp, handles, name_i, i))
-				{
-					handles.valid = false;
-					break;
-				}
-			}
-		}
-		return handles.valid;
-	}
-
-    int	myID;
+	int	myID;
 
 	std::string myGsplatStrId;
-    RE_Geometry *myWireframeGeo;
-    GA_Size myGsplatCount;
-    UT_Vector3Array mySplatPts;
-    UT_Vector3HArray mySplatColors;
-    UT_FloatArray mySplatAlphas; //TODO: make 16 bit like the rest?
-    UT_Vector3HArray mySplatScales;
-    UT_Vector4HArray mySplatOrients;
-    MyUT_Matrix4HArray myShxs;
+	RE_Geometry *myWireframeGeo;
+	GA_Size myGsplatCount;
+	UT_Vector3Array mySplatPts;
+	UT_Vector3HArray mySplatColors;
+	UT_FloatArray mySplatAlphas; //TODO: make 16 bit like the rest?
+	UT_Vector3HArray mySplatScales;
+	UT_Vector4HArray mySplatOrients;
+	MyUT_Matrix4HArray myShxs;
 	MyUT_Matrix4HArray myShys;
 	MyUT_Matrix4HArray myShzs;
+
+	bool mySetExplicitCameraPos;
+	UT_Vector3 myExplicitCameraPos;
 };
 
 

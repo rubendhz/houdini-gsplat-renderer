@@ -13,6 +13,7 @@
 
 #include "GSplatRenderer.h"
 #include "GSplatShaderManager.h"
+#include "GSplatLogger.h"
 
 #include <DM/DM_RenderTable.h>
 #include <GR/GR_Utils.h>
@@ -81,13 +82,75 @@ GR_PrimGsplat::acceptPrimitive(
     return GR_NOT_PROCESSED;
 }
 
-
 unsigned int closestSqrtPowerOf2(int n) 
 {
     if (n <= 1) return 2; // The smallest power of 2 whose square is greater than 0 or 1 is 2
     float sqrtVal = std::sqrt(n);
     unsigned int power = std::ceil(std::log2(sqrtVal)); // ceil to ensure we get the smallest power of 2 >= sqrtVal
     return std::pow(2, power);
+}
+
+bool GR_PrimGsplat::initSHHandle(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) {
+	const GA_Attribute *attr = gdp->findPointAttribute(name);
+	if (!attr) {
+		return false;
+	}
+	handles.sh[index] = GA_ROHandleV3(attr);
+	if (!handles.sh[index].isValid()) {
+		return false;
+	}
+	return true;
+}
+
+bool GR_PrimGsplat::initSHHandleFallback(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) {
+	const GA_Attribute *attr = gdp->findPointAttribute(name);
+	if (!attr) {
+		return false;
+	}
+	handles.sh_fallback[index] = GA_ROHandleF(attr);
+	if (!handles.sh_fallback[index].isValid()) {
+		return false;
+	}
+	return true;
+}
+
+bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
+	const char* names[] = {"sh1", "sh2", "sh3", "sh4", "sh5", "sh6", "sh7", "sh8", "sh9", 
+							"sh10", "sh11", "sh12", "sh13", "sh14", "sh15"};
+	handles.fallback = false;
+	handles.valid = true;
+	for (int i = 0; i < 15; ++i) {
+		if (!initSHHandle(gdp, handles, names[i], i))
+		{
+			handles.fallback = true;
+			break;
+		}
+	}
+
+	if (handles.fallback)
+	{
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::WARNING, "Spherical harmonics attributes 'sh1, sh2, ..., sh15' not found. Trying fallback f_rest_X attributes...");
+		const char* name_template = "f_rest_%d";
+		char name_i[50];
+		for (int i = 0; i < 45; ++i) {
+			sprintf(name_i, name_template, i);
+			if (!initSHHandleFallback(gdp, handles, name_i, i))
+			{
+				handles.valid = false;
+				break;
+			}
+		}
+
+		if (!handles.valid)
+		{
+			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::WARNING, "Spherical harmonics fallback 'f_rest_X' attributes not found.");
+		}
+		else
+		{
+			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::INFO, "Spherical harmonics fallback 'f_rest_X' found.");
+		}
+	}
+	return handles.valid;
 }
 
 void
@@ -125,7 +188,7 @@ GR_PrimGsplat::update(
 	const GA_Attribute *cdAttr = dtl->findPointAttribute("Cd");
 	if (!cdAttr) 
 	{
-		std::cerr << "Color attribute 'Cd' not found!" << std::endl;
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Color attribute 'Cd' not found!");
 	}
 	GA_ROHandleV3 colorHandle(cdAttr);
 
@@ -133,7 +196,7 @@ GR_PrimGsplat::update(
 	const GA_Attribute *alphaFallbackAttr = dtl->findPointAttribute("Alpha");
 	if (!alphaAttr && !alphaFallbackAttr) 
 	{
-		std::cerr << "Opacity attribute not found (tried 'opacity' and 'Alpha')" << std::endl;
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Opacity attribute not found! (tried 'opacity' and 'Alpha')");
 	} 
 	// If both are present, use the "fallback". If only one is present, use that.
 	// This is to allow for backwards compatibility with GSOPs Import which provides both "opacity" and "Alpha" 
@@ -151,19 +214,27 @@ GR_PrimGsplat::update(
 	const GA_Attribute *scaleAttr = dtl->findPointAttribute("scale");
 	if (!scaleAttr) 
 	{
-		std::cerr << "Scale attribute 'scale' not found!" << std::endl;
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Scale attribute 'scale' not found!");
 	}
 	GA_ROHandleV3 scaleHandle(scaleAttr);
 
 	const GA_Attribute *orientAttr = dtl->findPointAttribute("orient");
 	if (!orientAttr) 
 	{
-		std::cerr << "Orientation attribute 'orient' not found!" << std::endl;
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Orientation attribute 'orient' not found!");
 	}
 	GA_ROHandleV4 orientHandle(orientAttr);
 
 	SHHandles shHandles;
 	bool sh_data_found = initAllSHHandles(dtl, shHandles);
+
+
+	const GA_Attribute *explicitCameraPosAttr = dtl->findAttribute(GA_ATTRIB_GLOBAL, "gsplat__explicit_camera_pos");
+	GA_ROHandleV3 explicitCameraPosHandle;
+	if (explicitCameraPosAttr) 
+	{
+		explicitCameraPosHandle = GA_ROHandleV3(explicitCameraPosAttr);
+	}
 
 	myGsplatCount = gSplatPrim->getVertexCount(); // Now this represents the count for the current primitive only
 	mySplatPts.setSize(myGsplatCount);
@@ -294,6 +365,12 @@ GR_PrimGsplat::update(
 										 myShxs,
 										 myShys,
 										 myShzs);
+	
+	mySetExplicitCameraPos = explicitCameraPosHandle.isValid();
+	if (mySetExplicitCameraPos)
+	{
+		myExplicitCameraPos = explicitCameraPosHandle.get(0);
+	}
 }
 
 void
@@ -322,6 +399,12 @@ GR_PrimGsplat::render(
 	}
 
 	GSplatRenderer::getInstance().includeInRenderPass(myRegistryId);
+
+	if (mySetExplicitCameraPos)
+	{
+		GSplatRenderer::getInstance().setExplicitCameraPos(myExplicitCameraPos);
+	}
+			
 }
 
 void
