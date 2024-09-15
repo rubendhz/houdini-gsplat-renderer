@@ -17,10 +17,10 @@
 #include <DM/DM_RenderTable.h>
 #include <DM/DM_SceneHook.h>
 #include <RE/RE_Geometry.h>
+#include <GUI/GUI_DisplayOption.h>
 
 #include "GSplatRenderer.h"
-
-#include <iostream>
+#include "GSplatLogger.h"
 
 class MyCustomSceneRenderHook : public DM_SceneRenderHook {
 public:
@@ -31,7 +31,7 @@ public:
 
         GSplatRenderer::getInstance().generateRenderGeometry(r);
 
-        GSplatRenderer::getInstance().render(r);
+        GSplatRenderer::getInstance().render(r, hook_data.disp_options->isObjectLevel());
 
         GSplatRenderer::getInstance().postRender();
 

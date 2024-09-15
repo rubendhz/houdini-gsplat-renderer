@@ -38,11 +38,11 @@ GSplatRenderer::GSplatRenderer()
     myIsRenderEnabled = true;
     myCanRender = false;
     myIsExplicitCameraPosSet = false;
-
     myGSplatCount = 0;
-    //myAllocatedSplatCount = 0;
-
     mySplatOrigin = UT_Vector3(0, 0, 0);
+    myShOrder = 0;
+
+    _justPrintedOBJLevelRenderingWarning = false;
 }
 
 void GSplatRenderer::freeTextureResources()
@@ -531,7 +531,7 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
     }
 }
 
-void GSplatRenderer::render(RE_RenderContext r) 
+void GSplatRenderer::render(RE_RenderContext r, bool isObjectLevel)
 {
     if (!myIsRenderEnabled || !myCanRender || !myTriangleGeo)
     {
@@ -560,6 +560,24 @@ void GSplatRenderer::render(RE_RenderContext r)
         view_mat.invert();
         camera_pos = UT_Vector3(0,0,0);
         camera_pos = rowVecMult(camera_pos, view_mat);
+    }
+
+    // For now, Obj xform is not being handled, so just warn for now (without spamming)
+    if (isObjectLevel)
+    {
+        if (!_justPrintedOBJLevelRenderingWarning)
+        {
+            GSplatLogger::getInstance().log(
+                GSplatLogger::LogLevel::WARNING,
+                "Rendering OBJ context with camera position (%3f, %3f, %3f). Note that OBJ transforms different to identity are not currently supported (results might appear incorrect).",
+                camera_pos.x(), camera_pos.y(), camera_pos.z()
+            );
+            _justPrintedOBJLevelRenderingWarning = true;
+        }
+    }
+    else
+    {
+        _justPrintedOBJLevelRenderingWarning = false;
     }
 
     int splatCount = mySplatPoints.size();
@@ -595,22 +613,29 @@ void GSplatRenderer::render(RE_RenderContext r)
     {
         r->setBlendEquation(RE_BLEND_ADD);
     }
+    
+    bool doSH = (myShOrder > 0 && myIsShDataPresent);
+
     theGSShader->bindInt(r, "GSplatCount", splatCount);
     theGSShader->bindInt(r, "GSplatVertexCount", 6);
     theGSShader->bindVector(r, "GSplatOrigin", mySplatOrigin);
+    theGSShader->bindInt(r, "GSplatShOrder", doSH ? myShOrder : 0);
+    
     theGSShader->bindInt(r, "GSplatZOrderTexDim", myGSplatSortedIndexTexDim);
     r->bindTexture(myTexSortedIndex, theGSShader->getUniformTextureUnit("GSplatZOrderIntegerTexSampler"));
     theGSShader->bindInt(r, "GSplatPosColorAlphaScaleOrientTexDim", myGSplatPosColorAlphaScaleOrientTexDim);
     r->bindTexture(myTexGsplatPosColorAlphaScaleOrient, theGSShader->getUniformTextureUnit("GSplatPosColorAlphaScaleOrientTexSampler"));
 
-    theGSShader->bindInt(r, "GSplatShEnabled", myIsShDataPresent ? 1 : 0);
-    if (myIsShDataPresent)
+    if (doSH)
     {
         theGSShader->bindVector(r, "WorldSpaceCameraPos", camera_pos);
         theGSShader->bindInt(r, "GSplatShDeg1And2TexDim", myGSplatShDeg1And2TexDim);
         r->bindTexture(myTexGsplatShDeg1And2, theGSShader->getUniformTextureUnit("GSplatShDeg1And2TexSampler"));
-        theGSShader->bindInt(r, "GSplatShDeg3TexDim", myGSplatShDeg3TexDim);
-        r->bindTexture(myTexGsplatShDeg3, theGSShader->getUniformTextureUnit("GSplatShDeg3TexSampler"));
+        if (myShOrder > 2)
+        {
+            theGSShader->bindInt(r, "GSplatShDeg3TexDim", myGSplatShDeg3TexDim);
+            r->bindTexture(myTexGsplatShDeg3, theGSShader->getUniformTextureUnit("GSplatShDeg3TexSampler"));
+        }
     }
 
     myTriangleGeo->drawInstanced(r, RE_GEO_SHADED_IDX, splatCount); // non instanced version: myTriangleGeo->draw(r, RE_GEO_SHADED_IDX);
@@ -655,4 +680,9 @@ void GSplatRenderer::setExplicitCameraPos(const UT_Vector3 explicitCameraPos)
 {
     myIsExplicitCameraPosSet = true;
     myExplicitCameraPos = explicitCameraPos;
+}
+
+void GSplatRenderer::setSphericalHarmonicsOrder(const int shOrder)
+{
+    myShOrder = shOrder;
 }

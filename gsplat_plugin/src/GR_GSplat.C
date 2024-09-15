@@ -174,7 +174,7 @@ GR_PrimGsplat::update(
     myWireframeGeo->cacheBuffers(getCacheName());
 
     getGEOPrimFromGT<GEO_PrimGsplat>(primh, gSplatPrim);
-	
+
 	if(!gSplatPrim || gSplatPrim->getVertexCount() == 0)
     {
 		delete myWireframeGeo;
@@ -228,12 +228,18 @@ GR_PrimGsplat::update(
 	SHHandles shHandles;
 	bool sh_data_found = initAllSHHandles(dtl, shHandles);
 
-
 	const GA_Attribute *explicitCameraPosAttr = dtl->findAttribute(GA_ATTRIB_GLOBAL, "gsplat__explicit_camera_pos");
 	GA_ROHandleV3 explicitCameraPosHandle;
 	if (explicitCameraPosAttr) 
 	{
 		explicitCameraPosHandle = GA_ROHandleV3(explicitCameraPosAttr);
+	}
+
+	const GA_Attribute *shOrderAttr = dtl->findAttribute(GA_ATTRIB_GLOBAL, "gsplat__sh_order");
+	GA_ROHandleI shOrderHandle;
+	if (shOrderAttr) 
+	{
+		shOrderHandle = GA_ROHandleI(shOrderAttr);
 	}
 
 	myGsplatCount = gSplatPrim->getVertexCount(); // Now this represents the count for the current primitive only
@@ -371,6 +377,17 @@ GR_PrimGsplat::update(
 	{
 		myExplicitCameraPos = explicitCameraPosHandle.get(0);
 	}
+
+	myShOrder = 3;
+	if (shOrderHandle.isValid())
+	{
+		myShOrder = shOrderHandle.get(0);
+		if (myShOrder < 0 || myShOrder > 3)
+		{
+			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Spherical harmonics order requested: %d. Allowed values are 0, 1, 2, 3. Contribution will be disabled.");
+			myShOrder = 0;
+		}
+	}
 }
 
 void
@@ -387,8 +404,8 @@ GR_PrimGsplat::render(
 
 	GSplatRenderer::getInstance().setRenderingEnabled(render_mode < GR_RENDER_NUM_BEAUTY_MODES); //TODO, pass in r here, as different viewports could have different render modes.
 
-	bool need_wire = (render_mode == GR_RENDER_WIREFRAME ||
-		      (flags & GR_RENDER_FLAG_WIRE_OVER));
+	bool need_wire =(render_mode == GR_RENDER_WIREFRAME) ||
+		      		(flags & GR_RENDER_FLAG_WIRE_OVER);
 
     if(need_wire)
     {
@@ -404,7 +421,8 @@ GR_PrimGsplat::render(
 	{
 		GSplatRenderer::getInstance().setExplicitCameraPos(myExplicitCameraPos);
 	}
-			
+
+	GSplatRenderer::getInstance().setSphericalHarmonicsOrder(myShOrder);
 }
 
 void

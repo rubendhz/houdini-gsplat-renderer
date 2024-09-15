@@ -49,11 +49,11 @@ public:
     void includeInRenderPass(std::string  gSplatId);
     void flushEntriesForMatchingDetail(std::string myRegistryId);
     void generateRenderGeometry(RE_RenderContext r);
-    void render(RE_RenderContext r);
+    void render(RE_RenderContext r, bool isObjectLevel);
     void postRender();
     void setRenderingEnabled(bool isRenderEnabled);
     void setExplicitCameraPos(const UT_Vector3 explicitCameraPos);
-    void printRendererVersionOnce();
+    void setSphericalHarmonicsOrder(const int shOrder);
 
 private:
     struct GSplatRegisterEntry {
@@ -102,6 +102,7 @@ private:
     bool myCanRender;
     bool myIsExplicitCameraPosSet;
     UT_Vector3 myExplicitCameraPos;
+    int myShOrder;
 
     // Variables to hold camera sorting state
     UT_Vector3F myPreviousCameraPos; 
@@ -123,6 +124,10 @@ private:
     void setTextureFilteringCommon(RE_RenderContext r, RE_Texture* tex);
 
     void allocateTextureResources(RE_RenderContext r);
+
+    // A cheap way to avoid spamming teminal when warning about OBJ level rendering
+    bool _justPrintedOBJLevelRenderingWarning = false;
+
 };
 
 
