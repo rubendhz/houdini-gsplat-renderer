@@ -9,8 +9,8 @@
 /***************************************************************************************/
 
 
-#ifndef __GEO_PrimGsplat__
-#define __GEO_PrimGsplat__
+#ifndef __GEO_GSPLAT__
+#define __GEO_GSPLAT__
 
 
 #include <GEO/GEO_Primitive.h>
@@ -237,4 +237,4 @@ private:
 };
 
 
-#endif // __GEO_PrimGsplat__
+#endif // __GEO_GSPLAT__
