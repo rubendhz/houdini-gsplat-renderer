@@ -9,8 +9,8 @@
 /***************************************************************************************/
 
 
-#ifndef __GSPLAT_SHADERMANAGER__
-#define __GSPLAT_SHADERMANAGER__
+#ifndef __GSPLAT_SHADER_MANAGER__
+#define __GSPLAT_SHADER_MANAGER__
 
 
 #include <unordered_map>
@@ -57,4 +57,4 @@ private:
 };
 
 
-#endif // __GSPLAT_SHADERMANAGER__
+#endif // __GSPLAT_SHADER_MANAGER__

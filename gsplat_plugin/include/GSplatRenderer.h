@@ -21,9 +21,41 @@
 #include "UT_GSplatVectorTypes.h"
 
 class GSplatRenderer {
+
 private:
     static const GA_Size GSPLAT_COUNT_MAX = 1 << 23; // 8,388,608 GSplats
 
+public:
+    static GSplatRenderer& getInstance() {
+        static GSplatRenderer instance;
+        return instance;
+    }
+
+    std::string registerUpdate(
+        const GU_Detail *gdp,
+        const RE_CacheVersion &gversion, 
+        const GA_Offset &gVtxOffset,
+        const GA_Size &splatCount,
+        const UT_Vector3 &splatOrigin,
+        const UT_Vector3Array& splatPts, 
+        const UT_Vector3HArray& splatColors,
+        const UT_FloatArray& splatAlphas,
+        const UT_Vector3HArray& splatScales,
+        const UT_Vector4HArray& splatOrients,
+        const MyUT_Matrix4HArray& splatShxs,
+        const MyUT_Matrix4HArray& splatShys,
+        const MyUT_Matrix4HArray& splatShzs); 
+    
+    void includeInRenderPass(std::string  gSplatId);
+    void flushEntriesForMatchingDetail(std::string myRegistryId);
+    void generateRenderGeometry(RE_RenderContext r);
+    void render(RE_RenderContext r, bool isObjectLevel);
+    void postRender();
+    void setRenderingEnabled(bool isRenderEnabled);
+    void setExplicitCameraPos(const UT_Vector3 explicitCameraPos);
+    void setSphericalHarmonicsOrder(const int shOrder);
+
+private:
     struct GSplatRegisterEntry {
         GU_Detail *gdp;
         RE_CacheVersion gversion;
@@ -43,10 +75,8 @@ private:
         MyUT_Matrix4HArray* splatShzs = NULL;
     };
 
-    // Private constructor for singleton
     GSplatRenderer();
 
-    // Delete copy constructor and assignment operator to prevent copies
     GSplatRenderer(const GSplatRenderer&) = delete;
     GSplatRenderer& operator=(const GSplatRenderer&) = delete;
 
@@ -70,6 +100,9 @@ private:
     bool myIsRenderEnabled;
     bool myIsShDataPresent;
     bool myCanRender;
+    bool myIsExplicitCameraPosSet;
+    UT_Vector3 myExplicitCameraPos;
+    int myShOrder;
 
     // Variables to hold camera sorting state
     UT_Vector3F myPreviousCameraPos; 
@@ -92,41 +125,9 @@ private:
 
     void allocateTextureResources(RE_RenderContext r);
 
-public:
-    // Public method to access the singleton instance
-    static GSplatRenderer& getInstance() {
-        static GSplatRenderer instance;
-        return instance;
-    }
+    // A cheap way to avoid spamming teminal when warning about OBJ level rendering
+    bool _justPrintedOBJLevelRenderingWarning = false;
 
-    std::string registerUpdate(
-        const GU_Detail *gdp,
-        const RE_CacheVersion &gversion, 
-        const GA_Offset &gVtxOffset,
-        const GA_Size &splatCount,
-        const UT_Vector3 &splatOrigin,
-        const UT_Vector3Array& splatPts, 
-        const UT_Vector3HArray& splatColors,
-        const UT_FloatArray& splatAlphas,
-        const UT_Vector3HArray& splatScales,
-        const UT_Vector4HArray& splatOrients,
-        const MyUT_Matrix4HArray& splatShxs,
-        const MyUT_Matrix4HArray& splatShys,
-        const MyUT_Matrix4HArray& splatShzs); 
-    
-    void includeInRenderPass(std::string  gSplatId);
-    
-    void flushEntriesForMatchingDetail(std::string myRegistryId);
-
-    void generateRenderGeometry(RE_RenderContext r);
-
-    void render(RE_RenderContext r);
-
-    void postRender();
-
-    void setRenderingEnabled(bool isRenderEnabled);
-
-    void printRendererVersionOnce();
 };
 
 

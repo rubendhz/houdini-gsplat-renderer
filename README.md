@@ -60,8 +60,8 @@ I've always taken this project as a playground, and I intend to keep exploring n
 
 **Current limitations:**
 - Expect this to work only on a single viewport
-- No Spherical Harmonics rotation currently
 - Other 3D elements don't render "in-place" with GSplats
+- Only SOP context viewport (sorting is not correct when viewed from OBJ level)
 
 Please keep these limitations in mind, and note that I am not able to commit to a detailed roadmap or specific timeline for addressing them.
 
@@ -80,4 +80,6 @@ Also, if you create something cool and share it on social media, I’d love to c
 
 
 **Keep splatting!** 
+
+<a href="https://github.com/rubendhz/buy-me-a-coffee" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 37px !important;width: 170px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
