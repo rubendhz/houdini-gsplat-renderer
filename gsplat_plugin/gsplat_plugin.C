@@ -1,5 +1,6 @@
 // Collate everything into one .C file for hcustom.
 
+#include "src/GSplatLogger.C"
 #include "src/GSplatShaderManager.C"
 #include "src/GSplatRenderer.C"
 
