@@ -12,7 +12,8 @@
 #include "GSplatLogger.h"
 #include "GSplatPluginVersion.h"
 #include <iostream>
-//#include <iomanip>
+#include <cstdarg>
+
 
 void GSplatLogger::_log(const LogLevel level, const char * message)
 {
