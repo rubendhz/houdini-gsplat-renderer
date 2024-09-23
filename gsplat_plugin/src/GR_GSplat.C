@@ -129,7 +129,7 @@ bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
 
 	if (handles.fallback)
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::WARNING, "Spherical harmonics attributes 'sh1, sh2, ..., sh15' not found. Trying fallback f_rest_X attributes...");
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::WARNING, "%s", "Spherical harmonics attributes 'sh1, sh2, ..., sh15' not found. Trying fallback f_rest_X attributes...");
 		const char* name_template = "f_rest_%d";
 		char name_i[50];
 		for (int i = 0; i < 45; ++i) {
@@ -143,11 +143,11 @@ bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
 
 		if (!handles.valid)
 		{
-			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::WARNING, "Spherical harmonics fallback 'f_rest_X' attributes not found.");
+			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::WARNING, "%s", "Spherical harmonics fallback 'f_rest_X' attributes not found.");
 		}
 		else
 		{
-			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::INFO, "Spherical harmonics fallback 'f_rest_X' found.");
+			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::INFO, "%s", "Spherical harmonics fallback 'f_rest_X' found.");
 		}
 	}
 	return handles.valid;
@@ -188,7 +188,7 @@ GR_PrimGsplat::update(
 	const GA_Attribute *cdAttr = dtl->findPointAttribute("Cd");
 	if (!cdAttr) 
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Color attribute 'Cd' not found!");
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "%s", "Color attribute 'Cd' not found!");
 	}
 	GA_ROHandleV3 colorHandle(cdAttr);
 
@@ -196,7 +196,7 @@ GR_PrimGsplat::update(
 	const GA_Attribute *alphaFallbackAttr = dtl->findPointAttribute("Alpha");
 	if (!alphaAttr && !alphaFallbackAttr) 
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Opacity attribute not found! (tried 'opacity' and 'Alpha')");
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "%s", "Opacity attribute not found! (tried 'opacity' and 'Alpha')");
 	} 
 	// If both are present, use the "fallback". If only one is present, use that.
 	// This is to allow for backwards compatibility with GSOPs Import which provides both "opacity" and "Alpha" 
@@ -214,14 +214,14 @@ GR_PrimGsplat::update(
 	const GA_Attribute *scaleAttr = dtl->findPointAttribute("scale");
 	if (!scaleAttr) 
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Scale attribute 'scale' not found!");
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "%s", "Scale attribute 'scale' not found!");
 	}
 	GA_ROHandleV3 scaleHandle(scaleAttr);
 
 	const GA_Attribute *orientAttr = dtl->findPointAttribute("orient");
 	if (!orientAttr) 
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Orientation attribute 'orient' not found!");
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "%s", "Orientation attribute 'orient' not found!");
 	}
 	GA_ROHandleV4 orientHandle(orientAttr);
 
@@ -384,7 +384,7 @@ GR_PrimGsplat::update(
 		myShOrder = shOrderHandle.get(0);
 		if (myShOrder < 0 || myShOrder > 3)
 		{
-			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Spherical harmonics order requested: %d. Allowed values are 0, 1, 2, 3. Contribution will be disabled.");
+			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::ERROR, "Spherical harmonics order requested: %d. Allowed values are 0, 1, 2, 3. Contribution will be disabled.", myShOrder);
 			myShOrder = 0;
 		}
 	}
