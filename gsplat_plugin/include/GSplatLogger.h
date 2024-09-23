@@ -13,15 +13,16 @@
 
 #include <string>
 #include <unordered_set>
+#include <cstdarg>
 
 
 class GSplatLogger 
 {
 public:
     enum class LogLevel {
-        INFO,
-        WARNING,
-        ERROR
+        INFOX,
+        WARNINGX,
+        ERRORX
     };
 
     static GSplatLogger& getInstance() {
@@ -30,7 +31,7 @@ public:
     }
 
     static void log(const LogLevel level, const char* format, ...);  // Updated to const char* for variadic handling
-    static std::string formatInteger(const int numben, const char separator = ',');
+    static std::string formatInteger(const int number, const char separator = ',');
 
 protected:
     GSplatLogger() {}
