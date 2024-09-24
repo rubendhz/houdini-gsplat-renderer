@@ -4,7 +4,7 @@
         {
             "label": "gsplat_compile_debug_macos",
             "type": "shell",
-            "command": "cd '/Applications/Houdini/Houdini20.5.278/Frameworks/Houdini.framework/Versions/Current/Resources' && source ./houdini_setup && cd - && cd /Users/ruben/Dev/houdini-gsplat-renderer/gsplat_plugin && HCUSTOM_VERBOSE=1 HCUSTOM_CFLAGS=\"-g -O0\" hcustom -I include -I shaders gsplat_plugin.C",
+            "command": "cd '/Applications/Houdini/Houdini20.5.278/Frameworks/Houdini.framework/Versions/Current/Resources' && source ./houdini_setup && cd - && cd /Users/ruben/Dev/main/houdini-gsplat-renderer/gsplat_plugin && HCUSTOM_VERBOSE=1 HCUSTOM_CFLAGS=\"-g -O0\" hcustom -I include -I shaders gsplat_plugin.C",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -17,7 +17,7 @@
         {
             "label": "gsplat_compile_release_macos",
             "type": "shell",
-            "command": "cd '/Applications/Houdini/Houdini20.5.278/Frameworks/Houdini.framework/Versions/Current/Resources' && source ./houdini_setup && cd - && cd /Users/ruben/Dev/houdini-gsplat-renderer/gsplat_plugin hcustom -I include -I shaders gsplat_plugin.C && cp /Users/ruben/Library/Preferences/houdini/20.5/dso/gsplat_plugin.dylib ../compiled/macos/20.5/dso/gsplat_plugin.dylib",
+            "command": "cd '/Applications/Houdini/Houdini20.5.278/Frameworks/Houdini.framework/Versions/Current/Resources' && source ./houdini_setup && cd - && cd /Users/ruben/Dev/main/houdini-gsplat-renderer/gsplat_plugin hcustom -I include -I shaders gsplat_plugin.C && cp /Users/ruben/Library/Preferences/houdini/20.5/dso/gsplat_plugin.dylib ../compiled/macos/20.5/dso/gsplat_plugin.dylib",
             "group": {
                 "kind": "build",
                 "isDefault": true
