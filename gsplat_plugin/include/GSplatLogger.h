@@ -20,9 +20,9 @@ class GSplatLogger
 {
 public:
     enum class LogLevel {
-        INFOX,
-        WARNINGX,
-        ERRORX
+        _INFO_,
+        _WARNING_,
+        _ERROR_
     };
 
     static GSplatLogger& getInstance() {
