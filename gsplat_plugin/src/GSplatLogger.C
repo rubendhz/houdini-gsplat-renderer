@@ -12,7 +12,8 @@
 #include "GSplatLogger.h"
 #include "GSplatPluginVersion.h"
 #include <iostream>
-//#include <iomanip>
+#include <cstdarg>
+
 
 void GSplatLogger::_log(const LogLevel level, const char * message)
 {
@@ -34,22 +35,22 @@ std::string GSplatLogger::logLevelToString(const LogLevel level)
 {
 #if !defined(WIN32) // Playing it safe with colouring on Windows
     switch (level) {
-        case LogLevel::INFO:
+        case LogLevel::_INFO_:
             return " [\033[34mINFO\033[0m] ";    //Blue
-        case LogLevel::WARNING:
+        case LogLevel::_WARNING_:
             return " [\033[33mWARNING\033[0m] "; //Yellow
-        case LogLevel::ERROR:
+        case LogLevel::_ERROR_:
             return " [\033[31mERROR\033[0m] ";   //Red
         default:
             return " [UNKNOWN] ";
     }
 #else
     switch (level) {
-        case LogLevel::INFO:
+        case LogLevel::_INFO_:
             return " [INFO] ";
-        case LogLevel::WARNING:
+        case LogLevel::_WARNING_:
             return " [WARNING] ";
-        case LogLevel::ERROR:
+        case LogLevel::_ERROR_:
             return " [ERROR] ";
         default:
             return " [UNKNOWN] ";
