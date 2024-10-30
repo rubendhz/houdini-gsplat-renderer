@@ -43,7 +43,6 @@ private:
     GSplatLogger& operator=(const GSplatLogger&) = delete;
 
     static std::string logLevelToString(const LogLevel level);
-    //static std::string addColorCode(LogLevel level);
 };
 
 
@@ -56,6 +55,7 @@ public:
     }
 
     static void log(const GSplatLogger::LogLevel level, const char* format, ...);
+    static void resetLoggedMessageHistory(const GSplatLogger::LogLevel level, const char* format, ...);
 
 protected:
     GSplatOneTimeLogger() {}
@@ -64,6 +64,7 @@ private:
     GSplatOneTimeLogger(const GSplatOneTimeLogger&) = delete;
     GSplatOneTimeLogger& operator=(const GSplatOneTimeLogger&) = delete;
 
+    static std::size_t generateHash(const GSplatLogger::LogLevel level, const std::string& formattedMessage);
     static std::unordered_set<std::size_t> loggedMessages;
 };
 

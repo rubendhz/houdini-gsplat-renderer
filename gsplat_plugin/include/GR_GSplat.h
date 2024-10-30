@@ -101,7 +101,7 @@ private:
 
 	bool initSHHandle(const GU_Detail *gdp, SHHandles& handles, const char* name, int index);
 	bool initSHHandleFallback(const GU_Detail *gdp, SHHandles& handles, const char* name, int index);
-	bool initAllSHHandles(const GU_Detail *gdp, SHHandles& handles);
+	bool initAllSHHandles(const GU_Detail *gdp, SHHandles& handles, const char *detail_id);
 
 	int	myID;
 

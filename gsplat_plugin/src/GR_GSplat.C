@@ -114,7 +114,8 @@ bool GR_PrimGsplat::initSHHandleFallback(const GU_Detail *gdp, SHHandles& handle
 	return true;
 }
 
-bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
+bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles, const char * detail_id_str) {
+
 	const char* names[] = {"sh1", "sh2", "sh3", "sh4", "sh5", "sh6", "sh7", "sh8", "sh9", 
 							"sh10", "sh11", "sh12", "sh13", "sh14", "sh15"};
 	handles.fallback = false;
@@ -127,9 +128,13 @@ bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
 		}
 	}
 
+	std::string sh_attrs_not_found_msg = "Spherical harmonics attributes 'sh1, sh2, ..., sh15' not found. Trying fallback f_rest_X attributes...";
+	std::string f_rest_attrs_not_found_msg = "Spherical harmonics fallback 'f_rest_X' attributes not found.";
+	std::string f_rest_attrs_found_msg = "Spherical harmonics fallback 'f_rest_X' found.";
+
 	if (handles.fallback)
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_WARNING_, "%s", "Spherical harmonics attributes 'sh1, sh2, ..., sh15' not found. Trying fallback f_rest_X attributes...");
+		GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, sh_attrs_not_found_msg.c_str());
 		const char* name_template = "f_rest_%d";
 		char name_i[50];
 		for (int i = 0; i < 45; ++i) {
@@ -143,12 +148,18 @@ bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles) {
 
 		if (!handles.valid)
 		{
-			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_WARNING_, "%s", "Spherical harmonics fallback 'f_rest_X' attributes not found.");
+			GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, f_rest_attrs_not_found_msg.c_str());
 		}
 		else
 		{
-			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_INFO_, "%s", "Spherical harmonics fallback 'f_rest_X' found.");
+			GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::_INFO_, "%s %s", detail_id_str, f_rest_attrs_found_msg.c_str());
 		}
+	}
+	else
+	{
+		GSplatOneTimeLogger::getInstance().resetLoggedMessageHistory(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, sh_attrs_not_found_msg.c_str());
+		GSplatOneTimeLogger::getInstance().resetLoggedMessageHistory(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, f_rest_attrs_not_found_msg.c_str());
+		GSplatOneTimeLogger::getInstance().resetLoggedMessageHistory(GSplatLogger::LogLevel::_INFO_, "%s %s", detail_id_str, f_rest_attrs_found_msg.c_str());
 	}
 	return handles.valid;
 }
@@ -185,10 +196,20 @@ GR_PrimGsplat::update(
 	GU_DetailHandleAutoReadLock georl(p.geometry);
 	const GU_Detail *dtl = georl.getGdp();
 
+	std::string cd_attr_not_found_msg = "Color attribute 'Cd' not found!";
+	std::string alpha_attr_not_found_msg = "Opacity attribute not found! (tried 'opacity' and 'Alpha')";
+	std::string scale_attr_not_found_msg = "Scale attribute 'scale' not found!";
+	std::string orient_attr_not_found_msg = "Orientation attribute 'orient' not found!";
+	std::string bad_sh_order_attr_format_str = "%s Spherical harmonics order requested: %d. Allowed values are 0, 1, 2, 3. Contribution will be disabled.";
+
+	std::ostringstream oss;
+	oss << "[" << dtl << "]";
+	std::string detail_id_str = oss.str();
+
 	const GA_Attribute *cdAttr = dtl->findPointAttribute("Cd");
 	if (!cdAttr) 
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "%s", "Color attribute 'Cd' not found!");
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "%s %s", detail_id_str.c_str(), cd_attr_not_found_msg.c_str());
 	}
 	GA_ROHandleV3 colorHandle(cdAttr);
 
@@ -196,8 +217,8 @@ GR_PrimGsplat::update(
 	const GA_Attribute *alphaFallbackAttr = dtl->findPointAttribute("Alpha");
 	if (!alphaAttr && !alphaFallbackAttr) 
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "%s", "Opacity attribute not found! (tried 'opacity' and 'Alpha')");
-	} 
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "%s %s", detail_id_str.c_str(), alpha_attr_not_found_msg.c_str());
+	}
 	// If both are present, use the "fallback". If only one is present, use that.
 	// This is to allow for backwards compatibility with GSOPs Import which provides both "opacity" and "Alpha" 
 	bool useAlphaFallback = (alphaFallbackAttr != nullptr);
@@ -214,19 +235,20 @@ GR_PrimGsplat::update(
 	const GA_Attribute *scaleAttr = dtl->findPointAttribute("scale");
 	if (!scaleAttr) 
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "%s", "Scale attribute 'scale' not found!");
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "%s %s", detail_id_str.c_str(), scale_attr_not_found_msg.c_str());
 	}
+	
 	GA_ROHandleV3 scaleHandle(scaleAttr);
 
 	const GA_Attribute *orientAttr = dtl->findPointAttribute("orient");
 	if (!orientAttr) 
 	{
-		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "%s", "Orientation attribute 'orient' not found!");
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "%s %s", detail_id_str.c_str(), orient_attr_not_found_msg.c_str());
 	}
 	GA_ROHandleV4 orientHandle(orientAttr);
 
 	SHHandles shHandles;
-	bool sh_data_found = initAllSHHandles(dtl, shHandles);
+	bool sh_data_found = initAllSHHandles(dtl, shHandles, detail_id_str.c_str());
 
 	const GA_Attribute *explicitCameraPosAttr = dtl->findAttribute(GA_ATTRIB_GLOBAL, "gsplat__explicit_camera_pos");
 	GA_ROHandleV3 explicitCameraPosHandle;
@@ -384,8 +406,12 @@ GR_PrimGsplat::update(
 		myShOrder = shOrderHandle.get(0);
 		if (myShOrder < 0 || myShOrder > 3)
 		{
-			GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, "Spherical harmonics order requested: %d. Allowed values are 0, 1, 2, 3. Contribution will be disabled.", myShOrder);
+			GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::_ERROR_, bad_sh_order_attr_format_str.c_str(), detail_id_str.c_str(), myShOrder);
 			myShOrder = 0;
+		}
+		else
+		{
+			GSplatOneTimeLogger::getInstance().resetLoggedMessageHistory(GSplatLogger::LogLevel::_ERROR_, bad_sh_order_attr_format_str.c_str(), detail_id_str.c_str(), myShOrder);
 		}
 	}
 }
