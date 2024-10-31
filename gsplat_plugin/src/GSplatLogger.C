@@ -12,7 +12,13 @@
 #include "GSplatLogger.h"
 #include "GSplatPluginVersion.h"
 #include <iostream>
-//#include <iomanip>
+#include <cstdarg>
+
+#include <unordered_set>
+#include <string>
+#include <sstream>
+#include <functional>
+
 
 void GSplatLogger::_log(const LogLevel level, const char * message)
 {
@@ -34,22 +40,22 @@ std::string GSplatLogger::logLevelToString(const LogLevel level)
 {
 #if !defined(WIN32) // Playing it safe with colouring on Windows
     switch (level) {
-        case LogLevel::INFO:
+        case LogLevel::_INFO_:
             return " [\033[34mINFO\033[0m] ";    //Blue
-        case LogLevel::WARNING:
+        case LogLevel::_WARNING_:
             return " [\033[33mWARNING\033[0m] "; //Yellow
-        case LogLevel::ERROR:
+        case LogLevel::_ERROR_:
             return " [\033[31mERROR\033[0m] ";   //Red
         default:
             return " [UNKNOWN] ";
     }
 #else
     switch (level) {
-        case LogLevel::INFO:
+        case LogLevel::_INFO_:
             return " [INFO] ";
-        case LogLevel::WARNING:
+        case LogLevel::_WARNING_:
             return " [WARNING] ";
-        case LogLevel::ERROR:
+        case LogLevel::_ERROR_:
             return " [ERROR] ";
         default:
             return " [UNKNOWN] ";
@@ -91,14 +97,39 @@ std::string GSplatLogger::formatString(const char* format, va_list args)
 }
 
 std::unordered_set<std::size_t> GSplatOneTimeLogger::loggedMessages;
+
 void GSplatOneTimeLogger::log(const GSplatLogger::LogLevel level, const char* format, ...) 
 {
-    std::size_t msgHash = std::hash<std::string>{}(format);
+    va_list args;
+    va_start(args, format);
+    std::string formattedMessage = formatString(format, args);
+    va_end(args);
+
+    std::size_t msgHash = generateHash(level, formattedMessage);
+
     if (loggedMessages.insert(msgHash).second) {
-        va_list args;
-        va_start(args, format);
-        std::string formattedMessage = formatString(format, args);
-        va_end(args);
         _log(level, formattedMessage.c_str());
     }
+}
+
+void GSplatOneTimeLogger::resetLoggedMessageHistory(const GSplatLogger::LogLevel level, const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    std::string formattedMessage = formatString(format, args);
+    va_end(args);
+
+    std::size_t msgHash = generateHash(level, formattedMessage);
+    loggedMessages.erase(msgHash);
+}
+
+std::size_t GSplatOneTimeLogger::generateHash(const GSplatLogger::LogLevel level, const std::string& formattedMessage)
+{
+    std::size_t hash = std::hash<int>{}(static_cast<int>(level));
+    // Mix hash of formatted message and log level.
+    // This adds a constant (0x9e3779b9, which is the golden ratio) and incorporates the current hash in a way
+    // that helps spread out the hash values. The shifts (<< 6) and (>> 2) help to further 
+    // mix the bits, reducing collisions in the hash table.
+    hash ^= std::hash<std::string>{}(formattedMessage) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    return hash;
 }

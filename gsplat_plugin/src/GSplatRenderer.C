@@ -231,7 +231,7 @@ std::string GSplatRenderer::registerUpdate(
     const MyUT_Matrix4HArray& splatShys,
     const MyUT_Matrix4HArray& splatShzs) 
 {
-    GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::INFO, "Version: %s", GSPLAT_PLUGIN_VERSION);
+    GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::_INFO_, "Version: %s", GSPLAT_PLUGIN_VERSION);
 
     // if there are entries in the registry for this gdp, 
     // gversion will be different from the cache version of the entry
@@ -367,7 +367,7 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
     if (isGsplatCapHit)
     {
         GSplatLogger::getInstance().log(
-            GSplatLogger::LogLevel::WARNING,
+            GSplatLogger::LogLevel::_WARNING_,
             "%s active GSplats, exceeds %s budget. Culling excess %s GSplats!",
             GSplatLogger::formatInteger(totalActiveSplats).c_str(),
             GSplatLogger::formatInteger(GSplatCountMax).c_str(),
@@ -568,7 +568,7 @@ void GSplatRenderer::render(RE_RenderContext r, bool isObjectLevel)
         if (!_justPrintedOBJLevelRenderingWarning)
         {
             GSplatLogger::getInstance().log(
-                GSplatLogger::LogLevel::WARNING,
+                GSplatLogger::LogLevel::_WARNING_,
                 "Rendering OBJ context with camera position (%3f, %3f, %3f). Note that OBJ transforms different to identity are not currently supported (results might appear incorrect).",
                 camera_pos.x(), camera_pos.y(), camera_pos.z()
             );

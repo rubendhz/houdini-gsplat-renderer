@@ -13,15 +13,16 @@
 
 #include <string>
 #include <unordered_set>
+#include <cstdarg>
 
 
 class GSplatLogger 
 {
 public:
     enum class LogLevel {
-        INFO,
-        WARNING,
-        ERROR
+        _INFO_,
+        _WARNING_,
+        _ERROR_
     };
 
     static GSplatLogger& getInstance() {
@@ -30,7 +31,7 @@ public:
     }
 
     static void log(const LogLevel level, const char* format, ...);  // Updated to const char* for variadic handling
-    static std::string formatInteger(const int numben, const char separator = ',');
+    static std::string formatInteger(const int number, const char separator = ',');
 
 protected:
     GSplatLogger() {}
@@ -42,7 +43,6 @@ private:
     GSplatLogger& operator=(const GSplatLogger&) = delete;
 
     static std::string logLevelToString(const LogLevel level);
-    //static std::string addColorCode(LogLevel level);
 };
 
 
@@ -55,6 +55,7 @@ public:
     }
 
     static void log(const GSplatLogger::LogLevel level, const char* format, ...);
+    static void resetLoggedMessageHistory(const GSplatLogger::LogLevel level, const char* format, ...);
 
 protected:
     GSplatOneTimeLogger() {}
@@ -63,6 +64,7 @@ private:
     GSplatOneTimeLogger(const GSplatOneTimeLogger&) = delete;
     GSplatOneTimeLogger& operator=(const GSplatOneTimeLogger&) = delete;
 
+    static std::size_t generateHash(const GSplatLogger::LogLevel level, const std::string& formattedMessage);
     static std::unordered_set<std::size_t> loggedMessages;
 };
 
