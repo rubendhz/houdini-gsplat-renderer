@@ -8,7 +8,7 @@
 
 # The Renderer Is Now Accessible Through GSOPs 2.0
 
-Although this rendering solution remains a standalone package, it is also referenced as a submodule in the [GSOPs 2.0 project repository](https://github.com/david-rhodes/GSOPs_Renderer), where it lives alongside user-friendly tools for importing, procedurally manipulating, and exporting Gaussian splats, making it the recommended option for leveraging this technology. I will continue to maintain this repository, but it’s important to note that future development will be aligned with the shared project.
+Although this rendering solution remains a standalone package, it is also referenced as a submodule in the [GSOPs 2.0 project repository](https://github.com/david-rhodes/GSOPs), where it lives alongside user-friendly tools for importing, procedurally manipulating, and exporting Gaussian splats, making it the recommended option for leveraging this technology. I will continue to maintain this repository, but it’s important to note that future development will be aligned with the shared project.
 
 
 # Disclaimer
