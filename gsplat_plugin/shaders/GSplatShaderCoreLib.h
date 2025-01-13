@@ -6,6 +6,7 @@
 //
 
 const char* const GSplatCoreLib = R"glsl(
+    
     mat3 CalcMatrixFromRotationScale(vec4 rot, vec3 scale)
     {
         mat3 ms = mat3(
@@ -86,10 +87,10 @@ const char* const GSplatCoreLib = R"glsl(
         float lambda2 = max(mid - radius, 0.1);
         vec2 diagVec = normalize(vec2(offDiag, lambda1 - diag1));
         diagVec.y = -diagVec.y;
-        float maxSize = 4096.0;
-        v1 = min(sqrt(2.0 * lambda1), maxSize) * diagVec;
-        v2 = min(sqrt(2.0 * lambda2), maxSize) * vec2(diagVec.y, -diagVec.x);
+        v1 = sqrt(2.0 * lambda1) * diagVec;
+        v2 = sqrt(2.0 * lambda2) * vec2(diagVec.y, -diagVec.x);
     }
+
 )glsl";
 
 //
@@ -97,6 +98,7 @@ const char* const GSplatCoreLib = R"glsl(
 //
 
 const char* const GSplatSphericalHarmonicsLib = R"glsl(
+
     const float SH_C1 = 0.4886025;
     const float SH_C2_0 = 1.0925484;
     const float SH_C2_1 = -1.0925484;
@@ -131,7 +133,7 @@ const char* const GSplatSphericalHarmonicsLib = R"glsl(
                 int shOrder, 
                 bool onlySH)
     {
-        dir = -dir;
+        //dir = -dir;
 
         float x = dir.x;
         float y = dir.y;
@@ -176,6 +178,7 @@ const char* const GSplatSphericalHarmonicsLib = R"glsl(
         }
         return max(res, vec3(0,0,0));
     }
+
 )glsl";
 
 #endif // __GSPLAT_SHADER_CORE_LIB__

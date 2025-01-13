@@ -123,14 +123,15 @@ const char* const _GSplatMainVertexShader = R"glsl(
     uniform isampler2D GSplatZOrderIntegerTexSampler;
     uniform int GSplatPosColorAlphaScaleOrientTexDim;
     uniform sampler2D GSplatPosColorAlphaScaleOrientTexSampler;
-    
+
     uniform int GSplatShDeg1And2TexDim;
     uniform sampler2D GSplatShDeg1And2TexSampler;
     uniform int GSplatShDeg3TexDim;
     uniform sampler2D GSplatShDeg3TexSampler;
-    
+
     uniform int GSplatShOrder;
     uniform vec3 GSplatOrigin;
+
 
     out parms
     {
@@ -149,12 +150,13 @@ const char* const _GSplatMainVertexShader = R"glsl(
     };
     #endif // defined(VENDOR_NVIDIA)...
 
-    uniform mat4	glH_ObjViewMatrix;
+    uniform mat4    glH_ObjViewMatrix;
+    uniform mat4    glH_ObjectMatrix;
+    uniform mat4        glH_InvObjectMatrix;
     uniform mat4    glH_ViewMatrix;
-    uniform mat4	glH_ProjectMatrix;
-    uniform vec2	glH_DepthRange;
-    uniform vec2	glH_ScreenSize;
-    uniform mat4	glH_InvObjectMatrix;
+    uniform mat4        glH_ProjectMatrix;
+    uniform vec2        glH_DepthRange;
+    uniform vec2        glH_ScreenSize;
 
     ivec2 computeTextureCoordinates(int index, int textureDimension, int pixelStride) {
         int linearIndex = index * pixelStride;
@@ -198,9 +200,11 @@ const char* const _GSplatMainVertexShader = R"glsl(
         iuv = computeTextureCoordinates(GsplatIdx, GSplatPosColorAlphaScaleOrientTexDim, 4);
         vec3 P = texelFetch(GSplatPosColorAlphaScaleOrientTexSampler, iuv, 0).rgb;
         P += GSplatOrigin;
+
+        mat4 flipYMatrix = mat4(1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1);
         
-        vec3 centerWorldPos = (glH_ObjViewMatrix * vec4(P, 1.0)).xyz;
-        vec4 centerClipPos = ((glH_ProjectMatrix*mat4(1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1)) * vec4(centerWorldPos, 1));
+        vec3 centerViewPos = (glH_ObjViewMatrix * vec4(P, 1.0)).xyz;
+        vec4 centerClipPos = ((glH_ProjectMatrix * flipYMatrix) * vec4(centerViewPos, 1));
 
         if (centerClipPos.w <= 0)
         {
@@ -217,15 +221,15 @@ const char* const _GSplatMainVertexShader = R"glsl(
             vec3 scale = texelFetch(GSplatPosColorAlphaScaleOrientTexSampler, iuv + ivec2(2, 0), 0).rgb;
             vec4 orient = texelFetch(GSplatPosColorAlphaScaleOrientTexSampler, iuv + ivec2(3, 0), 0).xyzw;
 
-            vec4 _orient = orient.wxyz;
-
             vsOut.color = color;
             vsOut.opacity = alpha;
 
             vec2 quadPos = CalculateQuadPos(GSplatVtxIdx);
             vsOut.pos = vec4(quadPos, 0, 1);
             
-            mat3 splatRotScaleMat = CalcMatrixFromRotationScale(_orient, scale);
+            mat3 splatRotScaleMat = CalcMatrixFromRotationScale(orient.wxyz, scale);
+            splatRotScaleMat = splatRotScaleMat * transpose(mat3(glH_ObjectMatrix));
+
             vec3 cov3d0, cov3d1;
             mat3 sigma;
             CalcCovariance3D(splatRotScaleMat, cov3d0, cov3d1, sigma);
@@ -263,11 +267,11 @@ const char* const _GSplatMainVertexShader = R"glsl(
                     sh14 = texelFetch(GSplatShDeg3TexSampler, iuv + ivec2(5,0), 0).rgb;
                     sh15 = texelFetch(GSplatShDeg3TexSampler, iuv + ivec2(6,0), 0).rgb;
                 }
-
-                vec3 worldViewDir = WorldSpaceCameraPos - centerWorldPos;
-                vec3 objViewDir = mat3(glH_InvObjectMatrix) * worldViewDir;
-                objViewDir = normalize(objViewDir);
-                vsOut.color = ShadeSH(vsOut.color, sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8, sh9, sh10, sh11, sh12, sh13, sh14, sh15, objViewDir, GSplatShOrder, false);
+                
+                vec3 worldCamToPoint = vec3(P.x, P.y, P.z) - vec3(WorldSpaceCameraPos.x, WorldSpaceCameraPos.y, WorldSpaceCameraPos.z); 
+                vec3 objCamToPoint = mat3(glH_InvObjectMatrix) * worldCamToPoint;
+                vec3 shDir = normalize(objCamToPoint);
+                vsOut.color = ShadeSH(vsOut.color, sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8, sh9, sh10, sh11, sh12, sh13, sh14, sh15, shDir, GSplatShOrder, false);
             }
 
             vec2 deltaScreenPos = (quadPos.x * view_axis1 + quadPos.y * view_axis2) * 2 / glH_ScreenSize;
