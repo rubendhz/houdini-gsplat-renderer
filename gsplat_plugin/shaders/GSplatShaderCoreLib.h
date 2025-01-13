@@ -87,8 +87,9 @@ const char* const GSplatCoreLib = R"glsl(
         float lambda2 = max(mid - radius, 0.1);
         vec2 diagVec = normalize(vec2(offDiag, lambda1 - diag1));
         diagVec.y = -diagVec.y;
-        v1 = sqrt(2.0 * lambda1) * diagVec;
-        v2 = sqrt(2.0 * lambda2) * vec2(diagVec.y, -diagVec.x);
+        float maxSize = 4096.0;
+        v1 = min(sqrt(2.0 * lambda1), maxSize) * diagVec;
+        v2 = min(sqrt(2.0 * lambda2), maxSize) * vec2(diagVec.y, -diagVec.x);
     }
 
 )glsl";
