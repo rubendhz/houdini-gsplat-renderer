@@ -14,26 +14,13 @@
 
 #include "GSplatLogger.h"
 
-#include <iostream>
-#include <cstdlib>
-#include <fstream>
-#include <sstream>
-
 
 GsplatShaderManager::GsplatShaderManager() 
 {
-    myCustomMainShaderPreviousHash = 0;
 }
 
 GsplatShaderManager::~GsplatShaderManager() 
 {
-}
-
-const std::string GsplatShaderManager::_readFileToString(const char* filePath) {
-    std::ifstream file(filePath);
-    std::ostringstream content;
-    content << file.rdbuf();
-    return content.str();
 }
 
 RE_Shader* GsplatShaderManager::getShader(GSplatShaderType shaderType, RE_Render* r) 
