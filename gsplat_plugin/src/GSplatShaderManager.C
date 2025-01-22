@@ -61,17 +61,6 @@ RE_Shader* GsplatShaderManager::getShader(GSplatShaderType shaderType, RE_Render
                 vertexShaderOverrideSource = _readFileToString(overrideMainShaderVertexSrcFilePath);
                 fragmentShaderOverrideSource = _readFileToString(overrideMainShaderFragmentSrcFilePath);
 
-                // GSplatLogger::getInstance().log(
-                //     GSplatLogger::LogLevel::_INFO_,
-                //     "Vertex: %s",
-                //     vertexShaderOverrideSource.c_str()
-                // );
-                // GSplatLogger::getInstance().log(
-                //     GSplatLogger::LogLevel::_INFO_,
-                //     "Fragment: %s",
-                //     fragmentShaderOverrideSource.c_str()
-                // );
-                
                 std::hash<std::string> hasher;
                 size_t myCustomVertexShaderCurrentHash = hasher(vertexShaderOverrideSource.c_str());
                 size_t myCustomFragmentShaderCurrentHash = hasher(fragmentShaderOverrideSource.c_str());
@@ -83,16 +72,13 @@ RE_Shader* GsplatShaderManager::getShader(GSplatShaderType shaderType, RE_Render
                     hasShaderSrcOverrideChanged = true;
                 }
 
-                
-    #if !defined(WIN32)
-                //setenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_SET", "2", 1); // set to 2, to indicate no need to rehash
+#if !defined(WIN32)
                 unsetenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_VERTEX_SRC_PATH");
                 unsetenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_FRAGMENT_SRC_PATH");
-    #else
-                //_putenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_SET=2");
+#else
                 _putenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_VERTEX_SRC_PATH=");
                 _putenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_FRAGMENT_SRC_PATH=");
-    #endif        
+#endif        
             }
         }
         else
