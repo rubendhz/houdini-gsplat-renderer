@@ -38,70 +38,10 @@ const std::string GsplatShaderManager::_readFileToString(const char* filePath) {
 
 RE_Shader* GsplatShaderManager::getShader(GSplatShaderType shaderType, RE_Render* r) 
 {
-    bool useDefaultShader = true;
-    bool hasShaderSrcOverrideChanged = false;
-    
-    std::string vertexShaderOverrideSource;
-    std::string fragmentShaderOverrideSource;
-
-    if (shaderType == GSPLAT_MAIN_SHADER)
-    {
-        const char* overrideMainShaderEnvVar = std::getenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_SET");
-        
-        if (overrideMainShaderEnvVar)
-        {
-            useDefaultShader = false;
-
-            const char* overrideMainShaderVertexSrcFilePath = std::getenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_VERTEX_SRC_PATH");
-            const char* overrideMainShaderFragmentSrcFilePath = std::getenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_FRAGMENT_SRC_PATH");
-
-            if (overrideMainShaderVertexSrcFilePath && overrideMainShaderFragmentSrcFilePath)
-            {
-                //TODO: handle potential file reading errors
-                vertexShaderOverrideSource = _readFileToString(overrideMainShaderVertexSrcFilePath);
-                fragmentShaderOverrideSource = _readFileToString(overrideMainShaderFragmentSrcFilePath);
-
-                std::hash<std::string> hasher;
-                size_t myCustomVertexShaderCurrentHash = hasher(vertexShaderOverrideSource.c_str());
-                size_t myCustomFragmentShaderCurrentHash = hasher(fragmentShaderOverrideSource.c_str());
-                size_t myCustomShaderCurrentHash = myCustomVertexShaderCurrentHash ^ (myCustomFragmentShaderCurrentHash + 0x9e3779b9 + (myCustomVertexShaderCurrentHash << 6) + (myCustomVertexShaderCurrentHash >> 2));
-
-                if (myCustomShaderCurrentHash != myCustomMainShaderPreviousHash)
-                {
-                    myCustomMainShaderPreviousHash = myCustomShaderCurrentHash;
-                    hasShaderSrcOverrideChanged = true;
-                }
-
-#if !defined(WIN32)
-                unsetenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_VERTEX_SRC_PATH");
-                unsetenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_FRAGMENT_SRC_PATH");
-#else
-                _putenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_VERTEX_SRC_PATH=");
-                _putenv("GSPLAT_DEBUG_OPENGL_MAIN_SHADER_OVERRIDE_FRAGMENT_SRC_PATH=");
-#endif        
-            }
-        }
-        else
-        {
-            if (myCustomMainShaderPreviousHash != 0)
-            {
-                hasShaderSrcOverrideChanged = true;
-            }
-            myCustomMainShaderPreviousHash = 0;
-        }
-    }
-
     std::unordered_map<GSplatShaderType, RE_Shader*>::iterator it = myShaderMap.find(shaderType);
     if (it != myShaderMap.end()) 
     {
-        if (!hasShaderSrcOverrideChanged)
-        {
-            return it->second;
-        }
-        else
-        {
-            myShaderMap.erase(shaderType);
-        }
+        return it->second;
     }
     
     std::string shaderName = getNameForShaderType(shaderType);
@@ -111,38 +51,20 @@ RE_Shader* GsplatShaderManager::getShader(GSplatShaderType shaderType, RE_Render
         bool shaderLinked = false;
 
         UT_String shader_error_msg;
-
-        if (useDefaultShader)
-        {         
-            char* vertexShaderSource = nullptr;
-            char* fragmentShaderSource = nullptr;
-            getSourceForShaderType(shaderType, &vertexShaderSource, &fragmentShaderSource);
-            shaderLinked = addAndLinkShader(shader, r, vertexShaderSource, fragmentShaderSource, shader_error_msg);
-        }
-        else
-        {
-            shaderLinked = addAndLinkShader(shader, r, vertexShaderOverrideSource.c_str(), fragmentShaderOverrideSource.c_str(), shader_error_msg);
-        }
+     
+        char* vertexShaderSource = nullptr;
+        char* fragmentShaderSource = nullptr;
+        getSourceForShaderType(shaderType, &vertexShaderSource, &fragmentShaderSource);
+        shaderLinked = addAndLinkShader(shader, r, vertexShaderSource, fragmentShaderSource, shader_error_msg);
 
         if (shaderLinked) 
         {
             myShaderMap[shaderType] = shader;
-            if (!useDefaultShader)
-            {
-                GSplatLogger::getInstance().log(
-                    GSplatLogger::LogLevel::_INFO_,
-                    "Custom shader linked: %s",
-                    shaderName.c_str()
-                );
-            }
-            else
-            {
-                GSplatLogger::getInstance().log(
-                    GSplatLogger::LogLevel::_INFO_,
-                    "Shader linked: %s",
-                    shaderName.c_str()
-                );
-            }
+            GSplatLogger::getInstance().log(
+                GSplatLogger::LogLevel::_INFO_,
+                "Shader linked: %s",
+                shaderName.c_str()
+            );
         } 
         else 
         {
