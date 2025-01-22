@@ -90,7 +90,30 @@ unsigned int closestSqrtPowerOf2(int n)
     return std::pow(2, power);
 }
 
-bool GR_PrimGsplat::initSHHandle(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) {
+bool GR_PrimGsplat::initSHHandleShCoefficients(const GU_Detail *gdp, SHHandles& handles) 
+{
+	const char* sh_coeffs_attr_name = "sh_coefficients";
+
+	const GA_Attribute *attr = gdp->findPointAttribute(sh_coeffs_attr_name);
+	if (!attr) {
+		return false;
+	}
+	if (attr->getStorageClass() != GA_STORECLASS_FLOAT || attr->getTupleSize() != 3) {
+		return false;
+	}
+	handles.sh_coefficients = gdp->findFloatArray(GA_ATTRIB_POINT, sh_coeffs_attr_name, 0, 15);
+	
+	if (!handles.sh_coefficients.isValid())
+	{
+		return false;
+	}
+
+	handles.type = SHHandles::SHAttributeType::SH_ARRAY_ATTRIBUTE;
+	return true;
+}
+
+bool GR_PrimGsplat::initSHHandleShs(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) 
+{
 	const GA_Attribute *attr = gdp->findPointAttribute(name);
 	if (!attr) {
 		return false;
@@ -99,69 +122,70 @@ bool GR_PrimGsplat::initSHHandle(const GU_Detail *gdp, SHHandles& handles, const
 	if (!handles.sh[index].isValid()) {
 		return false;
 	}
+
+	handles.type = SHHandles::SHAttributeType::SH_ATTRIBUTES;
 	return true;
 }
 
-bool GR_PrimGsplat::initSHHandleFallback(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) {
+bool GR_PrimGsplat::initSHHandleRestAttrs(const GU_Detail *gdp, SHHandles& handles, const char* name, int index) 
+{
 	const GA_Attribute *attr = gdp->findPointAttribute(name);
 	if (!attr) {
 		return false;
 	}
-	handles.sh_fallback[index] = GA_ROHandleF(attr);
-	if (!handles.sh_fallback[index].isValid()) {
+	handles.sh_rest_attrs[index] = GA_ROHandleF(attr);
+	if (!handles.sh_rest_attrs[index].isValid()) {
 		return false;
 	}
+
+	handles.type = SHHandles::SHAttributeType::SH_REST_ATTRIBUTES;
 	return true;
 }
 
-bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles, const char * detail_id_str) {
+bool GR_PrimGsplat::initAllSHHandles(const GU_Detail *gdp, SHHandles& handles, const char * detail_id_str) 
+{
+	static std::string sh_rest_attrs_found_msg = "Spherical harmonics attributes not found! (tried 'sh_coefficients' vec3 array, 'sh1'..'sh15' vec3s and 'f_rest_' attrs)";
+		
+	handles.type = SHHandles::SHAttributeType::SH_NONE;
 
-	const char* names[] = {"sh1", "sh2", "sh3", "sh4", "sh5", "sh6", "sh7", "sh8", "sh9", 
-							"sh10", "sh11", "sh12", "sh13", "sh14", "sh15"};
-	handles.fallback = false;
-	handles.valid = true;
-	for (int i = 0; i < 15; ++i) {
-		if (!initSHHandle(gdp, handles, names[i], i))
-		{
-			handles.fallback = true;
-			break;
-		}
-	}
+	initSHHandleShCoefficients(gdp, handles);
 
-	std::string sh_attrs_not_found_msg = "Spherical harmonics attributes 'sh1, sh2, ..., sh15' not found. Trying fallback f_rest_X attributes...";
-	std::string f_rest_attrs_not_found_msg = "Spherical harmonics fallback 'f_rest_X' attributes not found.";
-	std::string f_rest_attrs_found_msg = "Spherical harmonics fallback 'f_rest_X' found.";
-
-	if (handles.fallback)
+	if (handles.type == SHHandles::SHAttributeType::SH_NONE)
 	{
-		GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, sh_attrs_not_found_msg.c_str());
-		const char* name_template = "f_rest_%d";
-		char name_i[50];
-		for (int i = 0; i < 45; ++i) {
-			sprintf(name_i, name_template, i);
-			if (!initSHHandleFallback(gdp, handles, name_i, i))
+		const char* sh_attrs_names[] = {"sh1", "sh2",  "sh3",  "sh4",  "sh5",  "sh6",  "sh7", "sh8", 
+										"sh9", "sh10", "sh11", "sh12", "sh13", "sh14", "sh15"};
+		for (int i = 0; i < 15; ++i) 
+		{
+			if (!initSHHandleShs(gdp, handles, sh_attrs_names[i], i))
 			{
-				handles.valid = false;
 				break;
 			}
 		}
+	}
 
-		if (!handles.valid)
-		{
-			GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, f_rest_attrs_not_found_msg.c_str());
+	if (handles.type == SHHandles::SHAttributeType::SH_NONE)
+	{
+		const char* frest_attr_name_template = "f_rest_%d";
+		char name_i[50];
+		for (int i = 0; i < 45; ++i) {
+			sprintf(name_i, frest_attr_name_template, i);
+			if (!initSHHandleRestAttrs(gdp, handles, name_i, i))
+			{
+				break;
+			}
 		}
-		else
-		{
-			GSplatOneTimeLogger::getInstance().log(GSplatLogger::LogLevel::_INFO_, "%s %s", detail_id_str, f_rest_attrs_found_msg.c_str());
-		}
+	}
+
+	if (handles.type == SHHandles::SHAttributeType::SH_NONE)
+	{
+		GSplatLogger::getInstance().log(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, sh_rest_attrs_found_msg.c_str());
 	}
 	else
 	{
-		GSplatOneTimeLogger::getInstance().resetLoggedMessageHistory(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, sh_attrs_not_found_msg.c_str());
-		GSplatOneTimeLogger::getInstance().resetLoggedMessageHistory(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, f_rest_attrs_not_found_msg.c_str());
-		GSplatOneTimeLogger::getInstance().resetLoggedMessageHistory(GSplatLogger::LogLevel::_INFO_, "%s %s", detail_id_str, f_rest_attrs_found_msg.c_str());
+		GSplatOneTimeLogger::getInstance().resetLoggedMessageHistory(GSplatLogger::LogLevel::_WARNING_, "%s %s", detail_id_str, sh_rest_attrs_found_msg.c_str());
 	}
-	return handles.valid;
+
+	return handles.type != SHHandles::SHAttributeType::SH_NONE;
 }
 
 void
@@ -299,7 +323,24 @@ GR_PrimGsplat::update(
 					myShys[i] = UT_Matrix4F(0.0);
 					myShzs[i] = UT_Matrix4F(0.0);
 					
-					if (!shHandles.fallback) 
+					if (shHandles.type == SHHandles::SHAttributeType::SH_ARRAY_ATTRIBUTE) 
+					{
+						UT_Fpreal32Array sh_coefficients_vals;
+						shHandles.sh_coefficients.get(ptoff, sh_coefficients_vals);
+
+						for (int j = 0; j < sh_coefficients_vals.size() / UT_Vector3::tuple_size; ++j) 
+						{
+							const exint idx = j * UT_Vector3::tuple_size;
+							UT_Vector3 shValue = UT_Vector3(sh_coefficients_vals.array() + idx);
+							int row = int(float(j) / 4);  
+							int col = j % 4;
+							myShxs[i](row, col) = shValue.x();
+							myShys[i](row, col) = shValue.y();
+							myShzs[i](row, col) = shValue.z();
+						}
+					}
+					else
+					if (shHandles.type == SHHandles::SHAttributeType::SH_ATTRIBUTES) 
 					{
 						for (int j = 0; j < 15; ++j) 
 						{
@@ -315,9 +356,9 @@ GR_PrimGsplat::update(
 					{
 						for (int j = 0; j < 15; ++j) 
 						{
-							float shValue0 = shHandles.sh_fallback[j].get(ptoff);
-							float shValue1 = shHandles.sh_fallback[j+15].get(ptoff);
-							float shValue2 = shHandles.sh_fallback[j+30].get(ptoff);
+							float shValue0 = shHandles.sh_rest_attrs[j].get(ptoff);
+							float shValue1 = shHandles.sh_rest_attrs[j+15].get(ptoff);
+							float shValue2 = shHandles.sh_rest_attrs[j+30].get(ptoff);
 							int row = int(float(j) / 4);  
 							int col = j % 4;
 							myShxs[i](row, col) = shValue0;

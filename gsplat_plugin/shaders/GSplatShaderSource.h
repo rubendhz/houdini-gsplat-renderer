@@ -152,11 +152,11 @@ const char* const _GSplatMainVertexShader = R"glsl(
 
     uniform mat4    glH_ObjViewMatrix;
     uniform mat4    glH_ObjectMatrix;
-    uniform mat4        glH_InvObjectMatrix;
+    uniform mat4    glH_InvObjectMatrix;
     uniform mat4    glH_ViewMatrix;
-    uniform mat4        glH_ProjectMatrix;
-    uniform vec2        glH_DepthRange;
-    uniform vec2        glH_ScreenSize;
+    uniform mat4    glH_ProjectMatrix;
+    uniform vec2    glH_DepthRange;
+    uniform vec2    glH_ScreenSize;
 
     ivec2 computeTextureCoordinates(int index, int textureDimension, int pixelStride) {
         int linearIndex = index * pixelStride;
@@ -303,8 +303,6 @@ const char* const _GSplatMainFragmentShader = R"glsl(
 
     void main()
     {
-        if (fsIn.opacity < 0.05)
-            discard;
         float power = -dot(fsIn.pos.xy, fsIn.pos.xy);
         float alpha = exp(power);
         alpha = clamp(alpha * fsIn.opacity, 0.0, 1.0);

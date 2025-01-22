@@ -51,9 +51,13 @@ public:
 
 private:
     std::unordered_map<GSplatShaderType, RE_Shader*> myShaderMap;
+    size_t myCustomMainShaderPreviousHash;
 
-    bool setupShader(RE_Shader* shader, const GSplatShaderType shaderType, RE_Render* r);
+    bool getSourceForShaderType(const GSplatShaderType shaderType, char **vertexShaderSource, char **fragmentShaderSource);
+    bool addAndLinkShader(RE_Shader* shader, RE_Render* r, const char* customVertexSource, const char* customFragmentSource, UT_String& msg);
     std::string getNameForShaderType(GSplatShaderType shaderType);
+
+    const std::string _readFileToString(const char* filePath);
 };
 
 

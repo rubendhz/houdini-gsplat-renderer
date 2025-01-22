@@ -134,8 +134,6 @@ const char* const GSplatSphericalHarmonicsLib = R"glsl(
                 int shOrder, 
                 bool onlySH)
     {
-        //dir = -dir;
-
         float x = dir.x;
         float y = dir.y;
         float z = dir.z;
