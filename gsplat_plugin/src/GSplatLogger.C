@@ -22,8 +22,11 @@
 
 void GSplatLogger::_log(const LogLevel level, const char * message)
 {
-    std::cout << "GSplat Plugin" << logLevelToString(level) 
-              << message  << std::endl; 
+    std::ostream& out = (level == LogLevel::_ERROR_) ? std::cerr : 
+                        (level == LogLevel::_WARNING_) ? std::clog : 
+                        std::cout;
+
+    out << "GSplat Plugin" << logLevelToString(level) << message << std::endl;
 }
 
 void GSplatLogger::log(const LogLevel level, const char* format, ...) 

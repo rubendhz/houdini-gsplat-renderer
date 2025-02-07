@@ -562,7 +562,7 @@ void GSplatRenderer::render(RE_RenderContext r, bool isObjectLevel)
         camera_pos = rowVecMult(camera_pos, view_mat);
     }
 
-    // For now, Obj xform is not being handled, so just warn for now (without spamming)
+    // Currently, Obj xform is not being handled, so just warn for now (without spamming)
     if (isObjectLevel)
     {
         if (!_justPrintedOBJLevelRenderingWarning)
@@ -596,6 +596,12 @@ void GSplatRenderer::render(RE_RenderContext r, bool isObjectLevel)
     // therefore gaussians must be tested against Z buffer but do not write into it (1)
     // they are also rendered before all transparencies, therefore no interaction with transparencies is supported.    
     RE_Shader* theGSShader = GsplatShaderManager::getInstance().getShader(GsplatShaderManager::GSPLAT_MAIN_SHADER, r);
+
+    if (!theGSShader)
+    {
+        return;
+    }
+
     r->pushShader(theGSShader);
 
     // Keep depth buffer check enabled but don't write to it (1)
