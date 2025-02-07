@@ -93,14 +93,23 @@ public:
 
 private:
 	struct SHHandles {
+		enum SHAttributeType {
+			SH_ARRAY_ATTRIBUTE,
+			SH_ATTRIBUTES,
+			SH_REST_ATTRIBUTES,
+			SH_NONE
+		};
+		
+		GA_ROHandleFA sh_coefficients;
 		GA_ROHandleV3 sh[16];
-		GA_ROHandleF sh_fallback[45];
-		bool fallback;
-		bool valid;
+		GA_ROHandleF sh_rest_attrs[45];
+
+		SHAttributeType type;
 	};
 
-	bool initSHHandle(const GU_Detail *gdp, SHHandles& handles, const char* name, int index);
-	bool initSHHandleFallback(const GU_Detail *gdp, SHHandles& handles, const char* name, int index);
+	bool initSHHandleShCoefficients(const GU_Detail *gdp, SHHandles& handles);
+	bool initSHHandleShs(const GU_Detail *gdp, SHHandles& handles, const char* name, int index);
+	bool initSHHandleRestAttrs(const GU_Detail *gdp, SHHandles& handles, const char* name, int index);
 	bool initAllSHHandles(const GU_Detail *gdp, SHHandles& handles, const char *detail_id);
 
 	int	myID;

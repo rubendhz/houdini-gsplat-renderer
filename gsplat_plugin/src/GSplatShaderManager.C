@@ -12,7 +12,7 @@
 #include "GSplatShaderManager.h"
 #include "GSplatShaderSource.h"
 
-#include <iostream>
+#include "GSplatLogger.h"
 
 
 GsplatShaderManager::GsplatShaderManager() 
@@ -23,7 +23,6 @@ GsplatShaderManager::~GsplatShaderManager()
 {
 }
 
-// Shader Getter Implementation
 RE_Shader* GsplatShaderManager::getShader(GSplatShaderType shaderType, RE_Render* r) 
 {
     std::unordered_map<GSplatShaderType, RE_Shader*>::iterator it = myShaderMap.find(shaderType);
@@ -36,49 +35,74 @@ RE_Shader* GsplatShaderManager::getShader(GSplatShaderType shaderType, RE_Render
     RE_Shader* shader = RE_Shader::create(shaderName.c_str());
     if (shader) 
     {
-        if (setupShader(shader, shaderType, r)) 
+        bool shaderLinked = false;
+
+        UT_String shader_error_msg;
+     
+        char* vertexShaderSource = nullptr;
+        char* fragmentShaderSource = nullptr;
+        getSourceForShaderType(shaderType, &vertexShaderSource, &fragmentShaderSource);
+        shaderLinked = addAndLinkShader(shader, r, vertexShaderSource, fragmentShaderSource, shader_error_msg);
+
+        if (shaderLinked) 
         {
             myShaderMap[shaderType] = shader;
+            GSplatLogger::getInstance().log(
+                GSplatLogger::LogLevel::_INFO_,
+                "Shader linked: %s",
+                shaderName.c_str()
+            );
         } 
         else 
         {
-            std::cerr << "Failed to set up shader: " << shaderName << std::endl;
+            GSplatLogger::getInstance().log(
+                GSplatLogger::LogLevel::_ERROR_,
+                "Failed to set up %s shader: %s",
+                shaderName.c_str(),
+                shader_error_msg.buffer()
+            );
             delete shader;
             shader = nullptr;
         }
     } 
     else 
     {
-        std::cerr << "Failed to create shader: " << shaderName << std::endl;
+        GSplatLogger::getInstance().log(
+            GSplatLogger::LogLevel::_ERROR_,
+            "Failed to create %s shader",
+            shaderName.c_str()
+        );
     }
     return shader;
+
 }
 
-bool GsplatShaderManager::setupShader(RE_Shader* shader, const GSplatShaderType shaderType, RE_Render* r) 
+bool GsplatShaderManager::addAndLinkShader(RE_Shader* shader, RE_Render* r, const char* vertexShaderSource, const char* fragmentShaderSource, UT_String& msg)
 {
-    const char* vertexShaderSource = nullptr;
-    const char* fragmentShaderSource = nullptr;
-    
-    switch (shaderType) 
-    {
-        case GSPLAT_MAIN_SHADER:
-            vertexShaderSource = GSplatMainVertexShader.c_str();
-            fragmentShaderSource = GSplatMainFragmentShader.c_str();
-            break;
-        case GSPLAT_WIRE_SHADER: 
-        default:
-            vertexShaderSource = GSplatWireVertexShader.c_str();
-            fragmentShaderSource = GSplatWireFragmentShader.c_str();
-            break;
-    }
-
-    UT_String msg;
     shader->addShader(r, RE_SHADER_VERTEX, vertexShaderSource, "VertexShader", 0, &msg);
     shader->addShader(r, RE_SHADER_FRAGMENT, fragmentShaderSource, "FragmentShader", 0, &msg);
 
     bool linkSuccess = shader->linkShaders(r, &msg);
     bool validateSuccess = shader->validateShader(r, &msg);
     return linkSuccess && validateSuccess;
+}
+
+bool GsplatShaderManager::getSourceForShaderType(const GSplatShaderType shaderType, char **vertexShaderSource, char **fragmentShaderSource)
+{
+    switch (shaderType) 
+    {
+        case GSPLAT_WIRE_SHADER:
+            *vertexShaderSource = (char*)GSplatWireVertexShader.c_str();
+            *fragmentShaderSource = (char*)GSplatWireFragmentShader.c_str();
+            break;
+        case GSPLAT_MAIN_SHADER:
+            *vertexShaderSource = (char*)GSplatMainVertexShader.c_str();
+            *fragmentShaderSource = (char*)GSplatMainFragmentShader.c_str();
+            break;
+        default:
+            return false;
+    }
+    return true;
 }
 
 void GsplatShaderManager::unloadAllShaders() {
