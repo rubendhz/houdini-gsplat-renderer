@@ -88,7 +88,7 @@ void GSplatRenderer::initialiseTextureResources()
     myGSplatSortedIndexTexDim = 0;
     
     myTexGsplatPosColorAlphaScaleOrient = RE_Texture::newTexture(RE_TEXTURE_2D);
-    myTexGsplatPosColorAlphaScaleOrient->setFormat(RE_GPU_FLOAT16, 4); //RGBA
+    myTexGsplatPosColorAlphaScaleOrient->setFormat(RE_GPU_FLOAT32, 4); //RGBA
     initialiseTextureResourceCommon(myTexGsplatPosColorAlphaScaleOrient);
     myGSplatPosColorAlphaScaleOrientTexDim = 0;
 
@@ -392,7 +392,7 @@ void GSplatRenderer::generateRenderGeometry(RE_RenderContext r)
         
     allocateTextureResources(r);
     
-    std::vector<fpreal16> PosColorAlphaScaleOrient_data;
+    std::vector<float> PosColorAlphaScaleOrient_data;
     PosColorAlphaScaleOrient_data.resize(myGSplatPosColorAlphaScaleOrientTexDim * myGSplatPosColorAlphaScaleOrientTexDim * 4); // *3 for rgb
 
     std::vector<fpreal16> shDeg1and2_data;
