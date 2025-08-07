@@ -18,6 +18,7 @@
 #include <string>
 #include <sstream>
 #include <functional>
+#include <algorithm>
 
 
 void GSplatLogger::_log(const LogLevel level, const char * message)
